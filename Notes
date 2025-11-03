@@ -47,7 +47,7 @@ format.js — formatCurrency, formatDate
 constants.js — categories, account types
 #tests/ — unit & integration tests (jest)
 serverless or Dockerfile (optional)
-
+`
 #Frontend (frontend/)
 package.json — start/build scripts
 public/index.html
