@@ -1,0 +1,124 @@
+This is the structure Im following So that I wont be confused. 
+Project root (monorepo)
+
+README.md — project overview, setup, run instructions, demo link
+.gitignore
+.env.example
+/backend
+/frontend
+/docs (optional)
+docker-compose.yml (optional)
+
+
+#Backend (backend/)
+package.json — start/dev/build scripts
+.env.example — MONGO_URI, JWT_SECRET, PORT, S3 keys, OPENAI_KEY
+#src/
+server.js — create Express app, configure middleware (CORS, bodyParser), mount routes, start server
+#config/
+db.js — connect to MongoDB (mongoose.connect)
+logger.js — simple logger wrapper
+#models/
+User.js — Mongoose schema: { email, passwordHash, name, createdAt }
+Account.js — { name, type, currency, balance, userId }
+Transaction.js — { userId, accountId, date, amount, currency, type, category, merchant, notes, receiptUrl, createdAt }
+Receipt.js (optional) — { transactionId, url, parsedText, parsedFields }
+#routes/
+auth.routes.js — POST /auth/signup, POST /auth/login, POST /auth/logout
+accounts.routes.js — CRUD for accounts
+transactions.routes.js — GET /transactions, POST /transactions, PUT /transactions/:id, DELETE /transactions/:id, POST /transactions/receipt
+insights.routes.js — GET /insights or POST /insights (AI endpoints)
+#controllers/
+auth.controller.js — controller logic for signup/login (hash password, create token)
+accounts.controller.js — create/list/update/delete accounts
+transactions.controller.js — CRUD and receipt upload handling, orchestrates AI categorization
+insights.controller.js — return aggregated stats or AI generated insights
+#services/
+auth.service.js — token generation, verifyToken
+storage.service.js — uploadToS3(file) and getUrl
+ai.service.js — callOpenAIForCategory(description) (wraps API calls and prompt templates)
+ocr.service.js — parseReceipt(file) -> parsedText (optional)
+#middlewares/
+auth.middleware.js — verify JWT, attach user to req
+error.middleware.js — standard error handler
+validate.middleware.js — request body validators (Joi or express-validator)
+#utils/
+format.js — formatCurrency, formatDate
+constants.js — categories, account types
+#tests/ — unit & integration tests (jest)
+serverless or Dockerfile (optional)
+
+#Frontend (frontend/)
+package.json — start/build scripts
+public/index.html
+
+#src/
+index.js — ReactDOM.render, wrap App in BrowserRouter and providers
+App.js — route configuration ("/", "/login", "/transactions", "/dashboard")
+
+#services/
+api.js — axios instance with baseURL and interceptors (attach auth token)
+auth.service.js — login, signup, logout helpers
+transactions.service.js — fetch/create/update/delete transactions, upload 
+
+#pages/
+Login.jsx — login form
+Signup.jsx — signup form (optional)
+Dashboard.jsx — cards and charts (spending by category, balance trend)
+Transactions.jsx — list, pagination, filters
+TransactionDetail.jsx — view/edit single transaction
+AddTransaction.jsx — form to create transaction + receipt uploader
+Settings.jsx — user settings
+components/
+Header.jsx — nav with login/logout
+AccountCard.jsx — account overview
+TransactionList.jsx — list table
+TransactionItem.jsx — row item
+TransactionForm.jsx — used in Add/Edit
+ReceiptUploader.jsx — drag/drop or input file, show preview
+Chart.jsx — wrapper for Chart.js / Recharts
+ProtectedRoute.jsx — only logged-in users can access
+
+
+#contexts/
+AuthContext.jsx — stores user and token, exposes login/logout
+
+
+#hooks/
+useAuth.js — convenience hooks
+useFetch.js — generic fetch hook
+#styles/ — Tailwind config or CSS files
+#assets/ — logos, icons
+#tests/ — React testing library unit tests
+
+#November 3rd 2025
+----------------------------------------------------------
+Installed necessary packages for backend and frontend.
+----------------------------------------------------------
+
+#Backend packages:
+express — web server / API routes
+mongoose — connect to MongoDB and define schemas
+dotenv — load environment variables
+bcryptjs — hash + compare passwords
+jsonwebtoken — create and verify JWT tokens
+cors — allow browser frontend to call backend
+multer — handle file uploads (receipts)
+nodemon (dev) — auto-restart server on file changes
+
+# For cloud receipts storage
+npm install aws-sdk            # (or @aws-sdk/client-s3 modern SDK)
+# For OpenAI integration
+npm install openai
+# For rate-limiting / security
+npm install express-rate-limit helmet
+# For input validation
+npm install express-validator joi
+# Reason: S3 stores files in production; OpenAI for AI categorization; 
+#helmet/rate-limit improve security; validators help sanitize inputs.
+
+#Frontend packages:
+create-react-app or vite — scaffolds React app and dev server
+axios — make API calls to backend
+chart.js + react-chartjs-2 — draw charts for spending insights
+tailwindcss + postcss + autoprefixer — fast utility CSS for UI styling
