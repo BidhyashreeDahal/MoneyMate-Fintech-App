@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
+import accountRoutes from './routes/accounts.routes.js';
 
 dotenv.config(); // Load environment variables
 const app = express();
@@ -19,6 +20,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);
+
+app.use("/api/accounts", accountRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
