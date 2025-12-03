@@ -1,3 +1,3 @@
-// Mongoose schema for virtual user accounts.
-// Fields: userId, name, type, balance, currency, createdAt.
-// Each account belongs to a specific user.
+// Defines the Account model for storing user financial accounts.
+// Used to track checking, savings, cash wallet, credit card accounts.
+// Includes metadata like color, icon, goals, and soft delete support.
