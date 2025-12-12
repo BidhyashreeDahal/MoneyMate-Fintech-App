@@ -8,7 +8,7 @@
 // All routes require user authentication.
 
 import express from 'express';
-import authMiddleware from '../middlewares/auth.middleware';
+import authMiddleware from '../middlewares/auth.middleware.js';
 import {
     createTransaction,
     getTransactions,
