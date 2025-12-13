@@ -26,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use("/api/accounts", accountRoutes);
 
 app.use("/api/transactions", transactionRoutes);
+
 app.use("/api/insights", insightsRoutes);
 
 // Start the server
