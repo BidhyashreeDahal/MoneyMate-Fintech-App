@@ -107,3 +107,73 @@ export const getCategoryBreakdown = async (req, res) => {
     res.status(500).json({ message: "Server error fetching category breakdown" });
   }
 };
+
+// Monthly Trends 
+// Monthly income & expense trends
+// Used for line charts in dashboard
+
+export const getMonthlyTrends = async (req, res) => {
+  try {
+    // Convert userId string to ObjectId (CRITICAL for aggregation)
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+
+    const trends = await Transaction.aggregate([
+      // Filter user transactions
+      {
+        $match: {
+          userId,
+          archived: false,
+        },
+      },
+
+      // Group by year-month
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m",
+              date: "$date",
+            },
+          },
+
+          // Sum income
+          income: {
+            $sum: {
+              $cond: [{ $eq: ["$type", "income"] }, "$amount", 0],
+            },
+          },
+
+          // Sum expense
+          expense: {
+            $sum: {
+              $cond: [{ $eq: ["$type", "expense"] }, "$amount", 0],
+            },
+          },
+        },
+      },
+
+      // Sort chronologically
+      {
+        $sort: { _id: 1 },
+      },
+
+      // Clean output for frontend
+      {
+        $project: {
+          _id: 0,
+          month: "$_id",
+          income: 1,
+          expense: 1,
+          net: { $subtract: ["$income", "$expense"] },
+        },
+      },
+    ]);
+
+    res.status(200).json({ monthlyTrends: trends });
+  } catch (error) {
+    console.error("Monthly trends error:", error);
+    res.status(500).json({
+      message: "Server error fetching monthly trends",
+    });
+  }
+};
