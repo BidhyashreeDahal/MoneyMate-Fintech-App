@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
 import accountRoutes from './routes/accounts.routes.js';
 import transactionRoutes from './routes/transactions.routes.js';
+import insightsRoutes from './routes/insights.routes.js';
 
 dotenv.config(); // Load environment variables
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use("/api/accounts", accountRoutes);
 
 app.use("/api/transactions", transactionRoutes);
+app.use("/api/insights", insightsRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
