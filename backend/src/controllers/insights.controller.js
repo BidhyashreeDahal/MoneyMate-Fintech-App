@@ -3,6 +3,7 @@
 // monthly trends, and account balances
 
 import Transaction from "../models/Transaction.js";
+import mongoose from "mongoose";
 
 export const getSummary = async (req, res) => {
   try {
@@ -12,7 +13,6 @@ export const getSummary = async (req, res) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = now;
 
-    // Fetch all non-archived transactions
     const allTx = await Transaction.find({
       userId,
       archived: false,
@@ -20,19 +20,13 @@ export const getSummary = async (req, res) => {
 
     let totalIncome = 0;
     let totalExpense = 0;
-
-    // Calculate all-time totals
     for (const tx of allTx) {
-      if (tx.type === "income") {
-        totalIncome += tx.amount;
-      } else if (tx.type === "expense") {
-        totalExpense += tx.amount;
-      }
+      if (tx.type === "income") totalIncome += tx.amount;
+      else if (tx.type === "expense") totalExpense += tx.amount;
     }
 
     const netBalance = totalIncome - totalExpense;
 
-    // Fetch this month's transactions
     const monthlyTx = await Transaction.find({
       userId,
       archived: false,
@@ -43,14 +37,10 @@ export const getSummary = async (req, res) => {
     let monthlyExpense = 0;
 
     for (const tx of monthlyTx) {
-      if (tx.type === "income") {
-        monthlyIncome += tx.amount;
-      } else if (tx.type === "expense") {
-        monthlyExpense += tx.amount;
-      }
+      if (tx.type === "income") monthlyIncome += tx.amount;
+      else if (tx.type === "expense") monthlyExpense += tx.amount;
     }
 
-    // Fetch recent transactions
     const recentTransactions = await Transaction.find({
       userId,
       archived: false,
@@ -77,5 +67,43 @@ export const getSummary = async (req, res) => {
   } catch (error) {
     console.error("Error fetching summary:", error);
     res.status(500).json({ message: "Server error fetching summary" });
+  }
+};
+// Category Breakdown (Expenses Only)
+export const getCategoryBreakdown = async (req, res) => {
+  try {
+    const userObjectId = new mongoose.Types.ObjectId(req.user.id);
+
+    const categories = await Transaction.aggregate([
+      {
+        $match: {
+          userId : userObjectId,
+          archived: false,
+          type: "expense",
+          category: { $exists: true, $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: "$category",
+          total: { $sum: "$amount" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          category: "$_id",
+          total: 1,
+        },
+      },
+      {
+        $sort: { total: -1 },
+      },
+    ]);
+
+    return res.status(200).json({ categories });
+  } catch (error) {
+    console.error("Error fetching category breakdown:", error);
+    res.status(500).json({ message: "Server error fetching category breakdown" });
   }
 };
