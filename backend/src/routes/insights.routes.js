@@ -6,6 +6,7 @@ import express from "express";
 import { getSummary } from "../controllers/insights.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js"
 import { getCategoryBreakdown } from "../controllers/insights.controller.js";
+import { getMonthlyTrends } from "../controllers/insights.controller.js";
 
 const router = express.Router();
 
@@ -13,4 +14,5 @@ const router = express.Router();
 router.use(authMiddleware);
 router.get("/summary", getSummary);
 router.get("/category-breakdown", getCategoryBreakdown);
+router.get("/monthly-trends", getMonthlyTrends);
 export default router;
