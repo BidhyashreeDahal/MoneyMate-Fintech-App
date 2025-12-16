@@ -45,10 +45,13 @@ const transactionSchema = new mongoose.Schema(
             default: "completed",
 
         },
+
+        
         // Optional failure reason
         failureReason: {
             type: String,
         },
+
     },
         { timestamps: true }
 );

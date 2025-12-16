@@ -1,10 +1,17 @@
-
+/*
+Handles secure account-to-account money transfers.
+Uses Mongo db session to avoid partial transfers
+ */
+import mongoose from "mongoose";
 import Transfer from "../models/Transfer.js";
 import Transaction from "../models/Transaction.js";
 import Account from "../models/Account.js";
 
 // Controller to handle money transfers between accounts
 export const createTransfer = async (req, res) =>{
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try{
         const userId = req.user.id;
         const {fromAccountId, toAccountId, amount, currency, note, date} = req.body;
@@ -102,4 +109,7 @@ export const createTransfer = async (req, res) =>{
         console.error("Error creating transfer:", error);
         res.status(500).json({message:"Internal server error"});   
     }
+    finally {
+  session.endSession();
+}
 }
