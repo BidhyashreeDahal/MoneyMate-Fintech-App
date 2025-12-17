@@ -4,7 +4,6 @@
 // receipt uploads, and multi-currency analytics.
 
 import mongoose from "mongoose";
-
 const transactionSchema = new mongoose.Schema(
   {
     // The user who owns this transaction

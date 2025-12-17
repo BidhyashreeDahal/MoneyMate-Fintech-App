@@ -4,7 +4,6 @@
 - Used to track and control expenses over a defined time period
 - Enables alerts, warnings, and analytics when spending approaches or exceeds limits
  */
-
 import mongoose from "mongoose";
 const budgetSchema = new mongoose.Schema({
     // Owner of the budget
