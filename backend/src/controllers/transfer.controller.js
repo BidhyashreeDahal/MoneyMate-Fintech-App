@@ -46,7 +46,7 @@ export const createTransfer = async (req, res) =>{
         if (fromAccount.balance < amount){
             return res.status(400).json({message:"Insufficient funds in source account"})
         }
-        session.startTransaction();
+       
 
         // Create Transfer Record
         const transfer = new Transfer([
@@ -56,7 +56,7 @@ export const createTransfer = async (req, res) =>{
             toAccountId,
             amount,
             currency: fromAccount.currency,
-            note,
+            notes,
             status: "pending",
             },
         ], {session});
