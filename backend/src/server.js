@@ -9,7 +9,9 @@ import authRoutes from './routes/auth.routes.js';
 import accountRoutes from './routes/accounts.routes.js';
 import transactionRoutes from './routes/transactions.routes.js';
 import insightsRoutes from './routes/insights.routes.js';
-import transferRoutes from './routes/transfers.routes.js'
+import transferRoutes from './routes/transfers.routes.js';
+import budgetRoutes from "./routes/budgets.routes.js";
+
 
 dotenv.config(); // Load environment variables
 const app = express();
@@ -31,6 +33,9 @@ app.use("/api/transactions", transactionRoutes);
 app.use("/api/transfers", transferRoutes);
 
 app.use("/api/insights", insightsRoutes);
+
+app.use("/api/budgets", budgetRoutes);
+
 
 
 // Start the server
