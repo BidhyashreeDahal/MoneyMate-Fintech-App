@@ -44,9 +44,7 @@ const transactionSchema = new mongoose.Schema(
             enum: ["pending", "completed", "failed"],
             default: "completed",
 
-        },
-
-        
+        }, 
         // Optional failure reason
         failureReason: {
             type: String,

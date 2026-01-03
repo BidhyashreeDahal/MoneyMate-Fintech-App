@@ -5,8 +5,8 @@ Calculate current spending from transactions
 Return budget status (spent, remaining, alert level)
 */
 import mongoose, { Schema }  from "mongoose";
-import Transaction from "../models/Transaction";
-import Budget from "../models/Budget";
+import Transaction from "../models/Transaction.js";
+import Budget from "../models/Budget.js";
 
 //Allow user to set a monthly spending limit for a category.
 export const createBudget = async (req, res) => {
