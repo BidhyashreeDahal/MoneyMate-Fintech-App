@@ -6,131 +6,116 @@
 
 import Transaction from "../models/Transaction.js";
 import Account from "../models/Account.js";
+import mongoose from "mongoose";
 
 // ===============================================================
 // Create a new transaction (income, expense, transfer)
 // ===============================================================
+// CREATE (updates balance atomically)
 export const createTransaction = async (req, res) => {
+  const userId = req.user.id;
+  const { accountId, type, amount, currency, category, merchant, date, notes } = req.body;
+
+  if (!accountId || !type || amount == null || !date) {
+    return res.status(400).json({
+      message: "Missing required fields: accountId, type, amount, or date.",
+    });
+  }
+
+  if (!["income", "expense"].includes(type)) {
+    return res.status(400).json({ message: "Invalid transaction type. Use income or expense." });
+  }
+
+  const amt = Number(amount);
+  if (!Number.isFinite(amt) || amt <= 0) {
+    return res.status(400).json({ message: "Amount must be a positive number." });
+  }
+
+  const session = await mongoose.startSession();
   try {
-    const userId = req.user.id;
-    const {
-      accountId,
-      type,
-      amount,
-      currency,
-      category,
-      merchant,
-      date,
-      notes,
-    } = req.body;
+    let createdTx;
 
-    // Validate required fields
-    if (!accountId || !type || !amount || !date) {
-      return res.status(400).json({
-        message: "Missing required fields: accountId, type, amount, or date.",
-      });
-    }
+    await session.withTransaction(async () => {
+      const account = await Account.findOne({ _id: accountId, userId, archived: false }).session(session);
+      if (!account) {
+        throw Object.assign(new Error("You are not authorized to use this account."), { statusCode: 403 });
+      }
 
-    // Verify account belongs to the user
-    const account = await Account.findOne({ _id: accountId, userId });
-    if (!account) {
-      return res.status(403).json({
-        message: "You are not authorized to use this account.",
-      });
-    }
+      if (currency && currency !== account.currency) {
+        throw Object.assign(new Error("Currency must match the account currency."), { statusCode: 400 });
+      }
 
-    // Handle transfers (we will expand later)
-    if (type === "transfer") {
-      return res.status(400).json({
-        message: "Transfer logic will be implemented later.",
-      });
-    }
+      const delta = type === "income" ? amt : -amt;
 
-    // Create transaction
-    const newTransaction = await Transaction.create({
-      userId,
-      accountId,
-      type,
-      amount,
-      currency,
-      category,
-      merchant,
-      date,
-      notes,
+      createdTx = await Transaction.create(
+        [{
+          userId,
+          accountId,
+          type,
+          amount: amt,
+          currency: account.currency,
+          category,
+          merchant,
+          date: new Date(date),
+          notes,
+        }],
+        { session }
+      );
+
+      await Account.updateOne(
+        { _id: accountId, userId },
+        { $inc: { balance: delta } }
+      ).session(session);
     });
 
     return res.status(201).json({
       message: "Transaction created successfully.",
-      transaction: newTransaction,
+      transaction: createdTx[0],
     });
   } catch (error) {
+    const status = error.statusCode || 500;
     console.error("Create Transaction Error:", error);
-    res.status(500).json({ message: "Server error creating transaction." });
+    return res.status(status).json({ message: error.message || "Server error creating transaction." });
+  } finally {
+    session.endSession();
   }
 };
 
-// ===============================================================
-// Get all transactions for the authenticated user
-// ===============================================================
+// GET ALL
 export const getTransactions = async (req, res) => {
   try {
     const userId = req.user.id;
-
-    const transactions = await Transaction.find({
-      userId,
-      archived: false,
-    }).sort({ date: -1 });
-
-    res.status(200).json({ transactions });
+    const transactions = await Transaction.find({ userId, archived: false }).sort({ date: -1 });
+    return res.status(200).json({ transactions });
   } catch (error) {
     console.error("Get Transactions Error:", error);
-    res.status(500).json({ message: "Server error fetching transactions." });
+    return res.status(500).json({ message: "Server error fetching transactions." });
   }
 };
 
-// ===============================================================
-// Get single transaction by ID
-// ===============================================================
+// GET ONE
 export const getTransactionById = async (req, res) => {
   try {
     const userId = req.user.id;
     const transactionId = req.params.id;
 
-    const transaction = await Transaction.findOne({
-      _id: transactionId,
-      userId,
-      archived: false,
-    });
+    const transaction = await Transaction.findOne({ _id: transactionId, userId, archived: false });
+    if (!transaction) return res.status(404).json({ message: "Transaction not found." });
 
-    if (!transaction) {
-      return res.status(404).json({ message: "Transaction not found." });
-    }
-
-    res.status(200).json({ transaction });
+    return res.status(200).json({ transaction });
   } catch (error) {
     console.error("Get Transaction Error:", error);
-    res.status(500).json({ message: "Server error fetching transaction." });
+    return res.status(500).json({ message: "Server error fetching transaction." });
   }
 };
 
-// ===============================================================
-// Update a transaction
-// ===============================================================
+// UPDATE (NOTE: does NOT adjust balance yet — we fix next)
 export const updateTransaction = async (req, res) => {
   try {
     const userId = req.user.id;
     const transactionId = req.params.id;
 
-    const allowedFields = [
-      "amount",
-      "currency",
-      "category",
-      "merchant",
-      "date",
-      "notes",
-      "type",
-    ];
-
+    const allowedFields = ["amount", "currency", "category", "merchant", "date", "notes", "type"];
     const updates = {};
     allowedFields.forEach((key) => {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
@@ -142,58 +127,37 @@ export const updateTransaction = async (req, res) => {
       { new: true }
     );
 
-    if (!transaction) {
-      return res.status(404).json({ message: "Transaction not found." });
-    }
+    if (!transaction) return res.status(404).json({ message: "Transaction not found." });
 
-    res.status(200).json({
-      message: "Transaction updated successfully.",
-      transaction,
-    });
+    return res.status(200).json({ message: "Transaction updated successfully.", transaction });
   } catch (error) {
     console.error("Update Transaction Error:", error);
-    res.status(500).json({ message: "Server error updating transaction." });
+    return res.status(500).json({ message: "Server error updating transaction." });
   }
 };
 
-// ===============================================================
-// Soft delete (archive) a transaction
-// ===============================================================
+// DELETE (archive) (NOTE: does NOT adjust balance yet — we fix next)
 export const deleteTransaction = async (req, res) => {
   try {
     const userId = req.user.id;
     const transactionId = req.params.id;
 
-    const transaction = await Transaction.findOne({
-      _id: transactionId,
-      userId,
-    });
-
-    if (!transaction) {
-      return res.status(404).json({ message: "Transaction not found." });
-    }
+    const transaction = await Transaction.findOne({ _id: transactionId, userId, archived: false });
+    if (!transaction) return res.status(404).json({ message: "Transaction not found." });
 
     transaction.archived = true;
     await transaction.save();
 
-    res.status(200).json({ message: "Transaction archived successfully." });
+    return res.status(200).json({ message: "Transaction archived successfully." });
   } catch (error) {
     console.error("Delete Transaction Error:", error);
-    res.status(500).json({ message: "Server error archiving transaction." });
+    return res.status(500).json({ message: "Server error archiving transaction." });
   }
 };
 
-// ===============================================================
-// Receipt upload (AI OCR + categorization placeholder)
-// ===============================================================
+// RECEIPT placeholder
 export const uploadReceipt = async (req, res) => {
-  try {
-    // We will integrate multer + S3 + AI later
-    res.status(200).json({
-      message: "Receipt upload endpoint works! AI integration coming soon.",
-    });
-  } catch (error) {
-    console.error("Receipt Upload Error:", error);
-    res.status(500).json({ message: "Server error uploading receipt." });
-  }
+  return res.status(200).json({
+    message: "Receipt upload endpoint works! AI integration coming soon.",
+  });
 };
