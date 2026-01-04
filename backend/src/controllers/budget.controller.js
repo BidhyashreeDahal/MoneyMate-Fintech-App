@@ -26,6 +26,7 @@ export const createBudget = async (req, res) => {
                message: "Budget limit must be greater than 0"
             });
          }
+         
 
          // Create Budget
          const budget = await Budget.create({
@@ -68,7 +69,7 @@ export const getBudgets = async(req, res) =>{
             const spending = await Transaction.aggregate([
                 {
                     $match:{
-                        userId : budget.userId,
+                       userId: new mongoose.Types.ObjectId(userId),
                         type: "expense",
                         category:budget.category,
                         date:{

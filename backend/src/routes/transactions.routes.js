@@ -14,13 +14,14 @@ import {
     getTransactions,
     getTransactionById,
     updateTransaction,
-   // deleteTransaction,
+    deleteTransaction,
     uploadReceipt,
 } from '../controllers/transactions.controller.js';
 const router = express.Router();
 
 //All routes are protected using auth middleware
 router.use(authMiddleware);
+router.post("/upload-receipt", uploadReceipt);
 
 // POST /api/transactions -> Create a new transaction
 router.post("/", createTransaction);
@@ -35,8 +36,8 @@ router.get("/:id", getTransactionById);
 router.put("/:id", updateTransaction);
 
 // DELETE /api/transactions/:id -> Soft delete (archive) transaction by ID
-//router.delete("/:id", deleteTransaction);
+router.delete("/:id", deleteTransaction);
 
 // POST /api/transactions/upload-receipt -> Upload receipt image for AI parsing (future feature)
-router.post("/upload-receipt", uploadReceipt);
+
 export default router;
