@@ -15,13 +15,18 @@ import {
     getTransactionById,
     updateTransaction,
     deleteTransaction,
-    uploadReceipt,
+    attachReceiptToTransaction,
 } from '../controllers/transactions.controller.js';
+import { uploadReceipt } from "../middlewares/uploadReceipt.middleware.js";
+
+
 const router = express.Router();
 
 //All routes are protected using auth middleware
 router.use(authMiddleware);
-router.post("/upload-receipt", uploadReceipt);
+
+router.post("/:id/receipt", uploadReceipt.single("receipt"), attachReceiptToTransaction);
+
 
 // POST /api/transactions -> Create a new transaction
 router.post("/", createTransaction);

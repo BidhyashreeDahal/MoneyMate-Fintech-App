@@ -251,9 +251,34 @@ export const deleteTransaction = async (req, res) => {
   }
 };
 
-// RECEIPT placeholder
-export const uploadReceipt = async (req, res) => {
-  return res.status(200).json({
-    message: "Receipt upload endpoint works! AI integration coming soon.",
-  });
+export const attachReceiptToTransaction = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const transactionId = req.params.id;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No receipt file uploaded." });
+    }
+
+    const receiptUrl = `/uploads/receipts/${req.file.filename}`;
+
+    const tx = await Transaction.findOneAndUpdate(
+      { _id: transactionId, userId, archived: false },
+      { receiptUrl },
+      { new: true }
+    );
+
+    if (!tx) {
+      return res.status(404).json({ message: "Transaction not found." });
+    }
+
+    return res.status(200).json({
+      message: "Receipt attached successfully.",
+      transaction: tx,
+    });
+  } catch (error) {
+    console.error("Attach Receipt Error:", error);
+    return res.status(500).json({ message: "Server error attaching receipt." });
+  }
 };
+
