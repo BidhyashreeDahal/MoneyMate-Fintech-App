@@ -12,18 +12,43 @@ import insightsRoutes from './routes/insights.routes.js';
 import transferRoutes from './routes/transfers.routes.js';
 import budgetRoutes from "./routes/budgets.routes.js";
 import { notFound, errorHandler } from "./middlewares/error.middleware.js";
+import helmet from "helmet";
+import cors from "cors";
+import { apiLimiter } from "./middlewares/rateLimit.middleware.js";
 
 
 dotenv.config(); // Load environment variables
 const app = express();
 connectDB(); // Connect to MongoDB
-
-
 // Parse JSON bodies
 app.use(express.json());
 
-// Parse cookies
+// Parse cookies (needed for cookie-based auth)
 app.use(cookieParser());
+
+/**
+ * Security headers
+ * - Helps prevent common attacks by setting safe HTTP headers.
+ */
+app.use(helmet());
+
+/**
+ * Rate limit all API routes
+ * - Protects against abuse/spam.
+ */
+app.use("/api", apiLimiter);
+
+/**
+ * CORS (Cross-Origin Resource Sharing)
+ * - Allows ONLY your frontend origin to call backend with cookies.
+ * - credentials:true is REQUIRED for cookie auth with Axios.
+ */
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN,
+    credentials: true,
+  })
+);
 
 app.use("/uploads", express.static("uploads"));
 
