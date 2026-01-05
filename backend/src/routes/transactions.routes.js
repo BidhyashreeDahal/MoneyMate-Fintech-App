@@ -18,6 +18,9 @@ import {
     attachReceiptToTransaction,
 } from '../controllers/transactions.controller.js';
 import { uploadReceipt } from "../middlewares/uploadReceipt.middleware.js";
+import { validateBody } from "../middlewares/validate.middleware.js";
+import { createTransactionSchema } from "../validators/transaction.validators.js";
+
 
 
 const router = express.Router();
@@ -26,11 +29,8 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.post("/:id/receipt", uploadReceipt.single("receipt"), attachReceiptToTransaction);
-
-
 // POST /api/transactions -> Create a new transaction
-router.post("/", createTransaction);
-
+router.post("/", validateBody(createTransactionSchema), createTransaction);
 // GET /api/transactions -> Get all transactions for logged-in user
 router.get("/", getTransactions);
 

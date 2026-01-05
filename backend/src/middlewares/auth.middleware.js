@@ -6,22 +6,24 @@ import jwt from "jsonwebtoken";
 
 const authMiddleware = (req, res, next) => {
   try {
-    // Read token from cookies
     const token = req.cookies?.token;
+
     if (!token) {
       return res.status(401).json({ message: "Not authenticated. No token provided." });
     }
 
-    // Verify token using JWT_SECRET
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Attach user ID to req.user
-    req.user = { id: decoded.id };
+    // support different payload shapes safely
+    const id = decoded?.id || decoded?.userId || decoded?._id;
+    if (!id) {
+      return res.status(401).json({ message: "Invalid token payload." });
+    }
 
-    // Continue to next middleware or controller
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: "Invalid or expired token." });
+    req.user = { id };
+    return next();
+  } catch (err) {
+    return res.status(401).json({ message: "Not authenticated. Invalid/expired token." });
   }
 };
 

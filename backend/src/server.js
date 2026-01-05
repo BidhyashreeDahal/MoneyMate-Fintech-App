@@ -11,6 +11,7 @@ import transactionRoutes from './routes/transactions.routes.js';
 import insightsRoutes from './routes/insights.routes.js';
 import transferRoutes from './routes/transfers.routes.js';
 import budgetRoutes from "./routes/budgets.routes.js";
+import { notFound, errorHandler } from "./middlewares/error.middleware.js";
 
 
 dotenv.config(); // Load environment variables
@@ -24,6 +25,9 @@ app.use(express.json());
 // Parse cookies
 app.use(cookieParser());
 
+app.use("/uploads", express.static("uploads"));
+
+
 app.use('/api/auth', authRoutes);
 
 app.use("/api/accounts", accountRoutes);
@@ -35,6 +39,9 @@ app.use("/api/transfers", transferRoutes);
 app.use("/api/insights", insightsRoutes);
 
 app.use("/api/budgets", budgetRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 
 

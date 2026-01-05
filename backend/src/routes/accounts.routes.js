@@ -3,22 +3,22 @@
 import express from 'express';
 import authMiddleware from '../middlewares/auth.middleware.js';
 import {
-    createAccount,
-    getAccounts,
-    updateAccount,
-    archiveAccount,
+  createAccount,
+  getAccounts,
+  updateAccount,
+  archiveAccount,
 } from "../controllers/accounts.controller.js";
+import { validateBody } from "../middlewares/validate.middleware.js";
+import { createAccountSchema, updateAccountSchema } from "../validators/account.validators.js";
+
 const router = express.Router();
-// Post /api/acounts -> Create a new accoun t
-router.post("/", authMiddleware, createAccount);
 
-// GET /api/accounts -> Get all accounts for logged-in user
-router.get("/", authMiddleware, getAccounts);
+// All routes protected
+router.use(authMiddleware);
 
-// PUT /api/accounts/:id -> Update account
-router.put("/:id", authMiddleware, updateAccount);
-
-// DELETE /api/accounts/:id -> Soft delete (archive) account
-router.delete("/:id", authMiddleware, archiveAccount);
+router.post("/", validateBody(createAccountSchema), createAccount);
+router.get("/", getAccounts);
+router.put("/:id", validateBody(updateAccountSchema), updateAccount);
+router.delete("/:id", archiveAccount);
 
 export default router;

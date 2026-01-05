@@ -9,11 +9,14 @@ import {
     deleteBudget,
 } from "../controllers/budget.controller.js"
 
+import { validateBody } from "../middlewares/validate.middleware.js";
+import { createBudgetSchema } from "../validators/budget.validators.js";
+
 const router = express.Router();
 
 router.use(authMiddleware);
 
-router.post("/",  createBudget);
+router.post("/", validateBody(createBudgetSchema), createBudget);
 
 router.get("/", getBudgets);
 
