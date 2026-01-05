@@ -83,11 +83,11 @@ export const login = async (req, res) => {
 
     const token = generateToken(existingUser._id);
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000,
+    res.cookie("token", token, {
+    httpOnly: true, // prevents JS from reading cookie (XSS protection)
+    secure: process.env.NODE_ENV === "production", // HTTPS only in prod
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days session
     });
 
     return res.status(200).json({
