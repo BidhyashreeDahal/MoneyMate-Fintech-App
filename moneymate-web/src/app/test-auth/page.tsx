@@ -52,7 +52,6 @@ export default function TestAuthPage() {
         <button onClick={handleMe}>GET /me</button>
         <button onClick={handleLogout}>Logout</button>
       </div>
-
       <pre style={{ marginTop: 16 }}>
         {JSON.stringify(result, null, 2)}
       </pre>
