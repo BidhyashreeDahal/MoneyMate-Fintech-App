@@ -7,24 +7,14 @@
  * */
 import { useEffect, useState } from "react";
 import CreateAccountModal from "@/components/accounts/CreateAccountModal";
-import {type Account, listAccounts } from "@/lib/accounts";
+import { listAccounts, type Account } from "@/lib/accounts";
 
 
-type Account ={
-    _id : string;
-    name : string;
-    type: string;
-    currency : string;
-    balance : number;
-    archived : boolean;
-}
 export default function AccountsPage() {
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [loading, setLoading] = useState (true);
     const [error, setError] = useState<string |null>(null);
     const [modalOpen, setModalOpen] = useState(false);
-
-
     async function loadAccounts(){
         setLoading (true); // show loading state
         setError (null); // clear previous error
@@ -116,6 +106,7 @@ export default function AccountsPage() {
           ))}
         </div>
       )}
+
       <CreateAccountModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
