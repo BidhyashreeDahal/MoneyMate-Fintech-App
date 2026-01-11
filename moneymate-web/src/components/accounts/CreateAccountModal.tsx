@@ -1,160 +1,195 @@
 "use client";
+
 /**
- * CreateAccount Modal
+ * CreateAccountModal
+ * -------------------------------------------------------
+ * Bank-style modal UX:
+ * - Uses accessible Dialog (focus trap, ESC closes, etc.)
+ * - Shows validation errors clearly
+ * - Has loading state to prevent double submits
  */
 
 import { useState } from "react";
-import {createAccount, CreateAccountInput} from "@/lib/accounts";
+import { createAccount } from "@/lib/accounts";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Props = {
-    open: boolean;
-    onClose: () => void;
-    onCreated:() => Promise<void>; //refresh account list after created
+  open: boolean;
+  onClose: () => void;
+  onCreated: () => Promise<void> | void;
 };
 
+const ACCOUNT_TYPES = [
+  "checking",
+  "savings",
+  "cash",
+  "credit_card",
+  "investment",
+  "wallet",
+] as const;
+
 export default function CreateAccountModal({ open, onClose, onCreated }: Props) {
-    // Form state
-    const [name, setName] = useState("");
-    const [type, setType] = useState< CreateAccountInput["type"]>("checking");
-    const [currency, setCurrency] = useState("CAD");
-    const [balance, setBalance] = useState<string>("0");
+  // Form state (kept local to modal)
+  const [name, setName] = useState("");
+  const [type, setType] = useState<(typeof ACCOUNT_TYPES)[number]>("checking");
+  const [currency, setCurrency] = useState("CAD");
+  const [balance, setBalance] = useState<number>(0);
 
-    const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  // UX state
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    if(!open) return null; //don't render if not open
+  function resetForm() {
+    setName("");
+    setType("checking");
+    setCurrency("CAD");
+    setBalance(0);
+    setError(null);
+  }
 
-    async function handleSubmit (e: React.FormEvent){
-        e.preventDefault();
-        setError (null);
-    
-    if(!name.trim()){
-        setError ("Name is required");
-        return;
+  async function handleCreate() {
+    setError(null);
+
+    // Frontend quick validation (backend still validates too)
+    if (!name.trim()) {
+      setError("Account name is required.");
+      return;
+    }
+    if (!currency || currency.length !== 3) {
+      setError("Currency must be a 3-letter code (e.g., CAD).");
+      return;
+    }
+    if (!Number.isFinite(balance) || balance < 0) {
+      setError("Balance must be 0 or more.");
+      return;
     }
 
-    const startingBalance = Number(balance);
-    if(!Number.isFinite (startingBalance) || startingBalance < 0){
-        setError ("Starting balance must be a non-negative number");
-        return;
-    }
-    setSubmitting (true);
-    try{
-        await createAccount({
-            name: name.trim(),
-            type,
-            currency: currency.trim().toUpperCase(),
-            balance: startingBalance,
-        });
-        await onCreated(); //refresh account list
+    setSubmitting(true);
+    try {
+      await createAccount({
+        name: name.trim(),
+        type,
+        currency: currency.toUpperCase(),
+        balance,
+      });
 
-        //reset form
-        setName ("");
-        setType ("checking");
-        setCurrency ("CAD");
-        setBalance (0);
-        onClose(); //close modal
-    } catch (e:any){
-        setError (e.message || "Failed to create account");
-    } finally{
-        setSubmitting (false);
-    }
-    }
-    return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.35)",
-        display: "grid",
-        placeItems: "center",
-        padding: 16,
-        zIndex: 50,
-      }}
-      onClick={onClose} // click outside closes modal
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 520,
-          background: "white",
-          borderRadius: 16,
-          padding: 20,
-        }}
-        onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
-      >
-        <h2 style={{ fontSize: 18, fontWeight: 700 }}>Add account</h2>
-        <p style={{ marginTop: 6, opacity: 0.75, fontSize: 13 }}>
-          Create a new account to track balances like a real bank ledger.
-        </p>
+      // Refresh list on parent page
+      await onCreated();
 
-        <form onSubmit={handleSubmit} style={{ marginTop: 16, display: "grid", gap: 12 }}>
-          <div>
-            <label style={{ fontSize: 13, fontWeight: 600 }}>Account name</label>
-            <input
+      // Close + reset
+      onClose();
+      resetForm();
+    } catch (e: any) {
+      setError(e.message || "Failed to create account");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
+      <DialogContent className="sm:max-w-[520px]">
+        <DialogHeader>
+          <DialogTitle>Create account</DialogTitle>
+          <DialogDescription>
+            Add a new account to track balances and transactions.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-2">
+          {/* Account Name */}
+          <div className="grid gap-2">
+            <Label htmlFor="name">Account name</Label>
+            <Input
+              id="name"
+              placeholder="Chequing Main"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Main Checking"
-              style={{ width: "100%", marginTop: 6, padding: 10, border: "1px solid #ddd", borderRadius: 10 }}
             />
           </div>
 
-          <div>
-            <label style={{ fontSize: 13, fontWeight: 600 }}>Type</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as any)}
-              style={{ width: "100%", marginTop: 6, padding: 10, border: "1px solid #ddd", borderRadius: 10 }}
-            >
-              <option value="checking">Checking</option>
-              <option value="savings">Savings</option>
-              <option value="cash">Cash</option>
-              <option value="credit_card">Credit Card</option>
-              <option value="investment">Investment</option>
-              <option value="wallet">Wallet</option>
-            </select>
+          {/* Type */}
+          <div className="grid gap-2">
+            <Label>Type</Label>
+            <Select value={type} onValueChange={(v) => setType(v as any)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                {ACCOUNT_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t.replace("_", " ").toUpperCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div>
-              <label style={{ fontSize: 13, fontWeight: 600 }}>Currency</label>
-              <input
+          {/* Currency + Balance */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="currency">Currency</Label>
+              <Input
+                id="currency"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                placeholder="CAD"
-                style={{ width: "100%", marginTop: 6, padding: 10, border: "1px solid #ddd", borderRadius: 10 }}
+                maxLength={3}
               />
             </div>
 
-            <div>
-              <label style={{ fontSize: 13, fontWeight: 600 }}>Starting balance</label>
-              <input
+            <div className="grid gap-2">
+              <Label htmlFor="balance">Initial balance</Label>
+              <Input
+                id="balance"
+                type="number"
                 value={balance}
-                onChange={(e) => setBalance(e.target.value)}
-                inputMode="decimal"
-                placeholder="0"
-                style={{ width: "100%", marginTop: 6, padding: 10, border: "1px solid #ddd", borderRadius: 10 }}
+                onChange={(e) => setBalance(Number(e.target.value))}
+                min={0}
               />
             </div>
           </div>
 
+          {/* Error message */}
           {error && (
-            <div style={{ color: "crimson", fontSize: 13 }}>
+            <p className="text-sm text-red-600 border border-red-200 bg-red-50 rounded-md p-2">
               {error}
-            </div>
+            </p>
           )}
+        </div>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
-            <button type="button" onClick={onClose} disabled={submitting}>
-              Cancel
-            </button>
-
-            <button type="submit" disabled={submitting} style={{ fontWeight: 700 }}>
-              {submitting ? "Creating..." : "Create account"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <DialogFooter className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              onClose();
+              resetForm();
+            }}
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleCreate} disabled={submitting}>
+            {submitting ? "Creating..." : "Create account"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
