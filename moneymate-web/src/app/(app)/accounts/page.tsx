@@ -6,7 +6,10 @@
  * shows loading , error and empty state
  * */
 import { useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api";
+import CreateAccountModal from "@/components/accounts/CreateAccountModal";
+import {type Account, listAccounts } from "@/lib/accounts";
+
+
 type Account ={
     _id : string;
     name : string;
@@ -19,12 +22,14 @@ export default function AccountsPage() {
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [loading, setLoading] = useState (true);
     const [error, setError] = useState<string |null>(null);
+    const [modalOpen, setModalOpen] = useState(false);
+
 
     async function loadAccounts(){
         setLoading (true); // show loading state
         setError (null); // clear previous error
         try{
-            const data = await apiFetch<Account[]>("/api/accounts"); //Call backend: GET http://localhost:5000/api/accounts
+            const data = await listAccounts(); //Call backend: GET http://localhost:5000/api/accounts
             setAccounts (data || []); // Save account to the react state
         } catch(e:any){
             setError (e.message || "Failed to load accounts");
@@ -39,6 +44,32 @@ export default function AccountsPage() {
     return (
     <main>
       <h1 style={{ fontSize: 24, fontWeight: 700 }}>Accounts</h1>
+
+        <div
+            style={{
+                marginTop: 12,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+            }}
+            >
+            <p style={{ margin: 0, opacity: 0.75 }}>Your accounts</p>
+
+            <button
+                onClick={() => setModalOpen(true)}
+                style={{
+                padding: "10px 14px",
+                borderRadius: 12,
+                border: "1px solid #ddd",
+                fontWeight: 700,
+                cursor: "pointer",
+                }}
+            >
+                + Add account
+            </button>
+        </div>
+
+      
 
       {loading && <p style={{ marginTop: 12 }}>Loading accounts...</p>}
 
@@ -85,6 +116,11 @@ export default function AccountsPage() {
           ))}
         </div>
       )}
+      <CreateAccountModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onCreated={loadAccounts}
+        />
     </main>
   );
 }
