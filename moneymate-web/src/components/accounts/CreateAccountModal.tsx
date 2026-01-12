@@ -11,6 +11,7 @@
 
 import { useState } from "react";
 import { createAccount } from "@/lib/accounts";
+import { iconMap } from "@/lib/iconMap.";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -50,7 +51,11 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
   const [name, setName] = useState("");
   const [type, setType] = useState<(typeof ACCOUNT_TYPES)[number]>("checking");
   const [currency, setCurrency] = useState("CAD");
-  const [balance, setBalance] = useState<number>(0);
+  const [balance, setBalance] = useState("0");
+  const [goalAmount, setGoalAmount] = useState("");
+  const [icon, setIcon] = useState<string | undefined>(undefined);
+  const [color, setColor] = useState("#4F46E5");
+
 
   // UX state
   const [submitting, setSubmitting] = useState(false);
@@ -60,7 +65,10 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
     setName("");
     setType("checking");
     setCurrency("CAD");
-    setBalance(0);
+    setBalance("0");
+    setGoalAmount("");
+    setIcon(undefined);
+    setColor("#4F46E5");
     setError(null);
   }
 
@@ -76,19 +84,39 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
       setError("Currency must be a 3-letter code (e.g., CAD).");
       return;
     }
-    if (!Number.isFinite(balance) || balance < 0) {
+    const bal = Number(balance);
+    if (!Number.isFinite(bal) || bal < 0) {
       setError("Balance must be 0 or more.");
+      return;
+    }
+
+    const goal = goalAmount.trim() ? Number(goalAmount) : undefined;
+    if (goal !== undefined && (!Number.isFinite(goal) || goal < 0)) {
+      setError("Goal amount must be 0 or more.");
       return;
     }
 
     setSubmitting(true);
     try {
-      await createAccount({
+      const accountData: any = {
         name: name.trim(),
         type,
         currency: currency.toUpperCase(),
-        balance,
-      });
+        balance: bal,
+        color: color.trim() || "#4F46E5",
+      };
+      
+      // Only include icon if user has selected one
+      if (icon) {
+        accountData.icon = icon;
+      }
+      
+      // Only include goalAmount if provided
+      if (goal !== undefined) {
+        accountData.goalAmount = goal;
+      }
+
+      await createAccount(accountData);
 
       // Refresh list on parent page
       await onCreated();
@@ -104,7 +132,15 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
+    <Dialog
+            open={open}
+            onOpenChange={(v) => {
+                if (!v) {
+                resetForm();
+                onClose();
+                }
+            }}
+    >
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Create account</DialogTitle>
@@ -160,9 +196,73 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
                 id="balance"
                 type="number"
                 value={balance}
-                onChange={(e) => setBalance(Number(e.target.value))}
+                onChange={(e) => setBalance(e.target.value)} // keep raw string
                 min={0}
+                step="0.01"
               />
+
+            </div>
+          </div>
+
+          {/* Goal Amount + Color */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="goalAmount">Goal amount (optional)</Label>
+              <Input
+                id="goalAmount"
+                type="number"
+                value={goalAmount}
+                onChange={(e) => setGoalAmount(e.target.value)}
+                min={0}
+                step="0.01"
+                placeholder="Leave empty for no goal"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="color">Color</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="color"
+                  type="color"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  className="w-16 h-10 cursor-pointer p-1"
+                />
+                <Input
+                  type="text"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  placeholder="#4F46E5"
+                  className="flex-1"
+                  maxLength={7}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Icon Selection */}
+          <div className="grid gap-2">
+            <Label>Icon (optional)</Label>
+            <div className="grid grid-cols-5 gap-2">
+              {Object.entries(iconMap).map(([iconName, IconComponent]) => {
+                const Icon = IconComponent as React.ComponentType<{ className?: string }>;
+                const isSelected = icon === iconName;
+                return (
+                  <button
+                    key={iconName}
+                    type="button"
+                    onClick={() => setIcon(iconName)}
+                    className={`flex items-center justify-center h-10 w-10 rounded-md border-2 transition-colors ${
+                      isSelected
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </button>
+                );
+              })}
             </div>
           </div>
 
