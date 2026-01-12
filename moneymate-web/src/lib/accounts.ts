@@ -44,3 +44,23 @@ export async function createAccount(input: CreateAccountInput): Promise<Account>
   // backend might return { account: {...} } or {...}
   return data.account ?? data;
 }
+
+
+export type UpdateAccountInput = {
+  name?: string;
+  type?: "checking" | "savings" | "cash" | "credit_card" | "investment" | "wallet";
+  currency?: string;
+  goalAmount?: number | null;
+  color?: string;
+  icon?: string | null;
+};
+
+export async function updateAccount(accountId: string, input: UpdateAccountInput): Promise<Account> {
+  const data = await apiFetch<any>(`/api/accounts/${accountId}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+
+  // backend returns { message, account }
+  return data.account ?? data;
+}
