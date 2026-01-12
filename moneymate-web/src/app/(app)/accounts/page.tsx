@@ -10,6 +10,8 @@ import CreateAccountModal from "@/components/accounts/CreateAccountModal";
 import { listAccounts, type Account } from "@/lib/accounts";
 import { iconMap } from "@/lib/iconMap.";
 import { Button } from "@/components/ui/button";
+import EditAccountModal from "@/components/accounts/UpdateAccountModal";
+
 
 
 export default function AccountsPage() {
@@ -17,6 +19,20 @@ export default function AccountsPage() {
     const [loading, setLoading] = useState (true);
     const [error, setError] = useState<string |null>(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
+    const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+
+function openEdit(account: Account) {
+  setSelectedAccount(account);
+  setEditOpen(true);
+}
+
+function handleUpdated(updated: Account) {
+  setAccounts((prev) =>
+    prev.map((a) => (a._id === updated._id ? updated : a))
+  );
+}
+
     async function loadAccounts(){
         setLoading (true); // show loading state
         setError (null); // clear previous error
@@ -33,6 +49,7 @@ export default function AccountsPage() {
     useEffect(() => {
         loadAccounts();
     }, []);
+    
     return (
     <main>
       <h1 className="text-2xl font-bold">Accounts</h1>
@@ -97,8 +114,15 @@ export default function AccountsPage() {
                       </div>
                     </div>
                   </div>
-
-                  <div className="text-right">
+                <div className="text-right">
+                  <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mb-2"
+                        onClick={() => openEdit(a)}
+                    >
+                        Edit
+                    </Button>
                     <div className="font-bold text-lg">
                       {a.balance.toLocaleString(undefined, {
                         style: "currency",
@@ -144,6 +168,13 @@ export default function AccountsPage() {
         onClose={() => setModalOpen(false)}
         onCreated={loadAccounts}
         />
+        <EditAccountModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        account={selectedAccount}
+        onUpdated={handleUpdated}
+        />
+
     </main>
   );
 }
