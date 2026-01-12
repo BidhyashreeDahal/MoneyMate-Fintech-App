@@ -8,6 +8,8 @@
 import { useEffect, useState } from "react";
 import CreateAccountModal from "@/components/accounts/CreateAccountModal";
 import { listAccounts, type Account } from "@/lib/accounts";
+import { iconMap } from "@/lib/iconMap.";
+import { Button } from "@/components/ui/button";
 
 
 export default function AccountsPage() {
@@ -33,77 +35,107 @@ export default function AccountsPage() {
     }, []);
     return (
     <main>
-      <h1 style={{ fontSize: 24, fontWeight: 700 }}>Accounts</h1>
+      <h1 className="text-2xl font-bold">Accounts</h1>
 
-        <div
-            style={{
-                marginTop: 12,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-            }}
-            >
-            <p style={{ margin: 0, opacity: 0.75 }}>Your accounts</p>
+        <div className="mt-3 flex justify-between items-center">
+            <p className="opacity-75">Your accounts</p>
 
-            <button
+            <Button
                 onClick={() => setModalOpen(true)}
-                style={{
-                padding: "10px 14px",
-                borderRadius: 12,
-                border: "1px solid #ddd",
-                fontWeight: 700,
-                cursor: "pointer",
-                }}
+                className="font-bold"
             >
                 + Add account
-            </button>
+            </Button>
         </div>
 
-      
-
-      {loading && <p style={{ marginTop: 12 }}>Loading accounts...</p>}
+      {loading && <p className="mt-3">Loading accounts...</p>}
 
       {!loading && error && (
-        <div style={{ marginTop: 12 }}>
-          <p style={{ color: "crimson" }}>{error}</p>
-          <button onClick={loadAccounts} style={{ marginTop: 8 }}>
+        <div className="mt-3">
+          <p className="text-red-600">{error}</p>
+          <Button onClick={loadAccounts} variant="outline" className="mt-2">
             Retry
-          </button>
+          </Button>
         </div>
       )}
 
       {!loading && !error && accounts.length === 0 && (
-        <p style={{ marginTop: 12 }}>No accounts yet. Create your first account.</p>
+        <p className="mt-3">No accounts yet. Create your first account.</p>
       )}
 
       {!loading && !error && accounts.length > 0 && (
-        <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-          {accounts.map((a) => (
-            <div
-              key={a._id}
-              style={{
-                border: "1px solid #eee",
-                borderRadius: 12,
-                padding: 16,
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 600 }}>{a.name}</div>
-                <div style={{ fontSize: 13, opacity: 0.75 }}>
-                  {a.type.toUpperCase()} • {a.currency}
-                </div>
-              </div>
+        <div className="mt-4 grid gap-3">
+          {accounts.map((a) => {
+            const IconComponent = a.icon ? iconMap[a.icon] : iconMap.wallet;
+            const Icon = IconComponent || iconMap.wallet;
+            const borderColor = a.color || "#4F46E5";
+            const goalProgress = a.goalAmount && a.goalAmount > 0 
+              ? Math.min((a.balance / a.goalAmount) * 100, 100) 
+              : null;
 
-              <div style={{ fontWeight: 700 }}>
-                {a.balance.toLocaleString(undefined, {
-                  style: "currency",
-                  currency: a.currency || "CAD",
-                })}
+            return (
+              <div
+                key={a._id}
+                className="border-2 rounded-xl p-4 bg-white"
+                style={{ borderColor: borderColor }}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center"
+                      style={{
+                        backgroundColor: `${borderColor}20`,
+                        color: borderColor,
+                      }}
+                    >
+                      <Icon size={20} />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-base">{a.name}</div>
+                      <div className="text-xs opacity-75 mt-0.5">
+                        {a.type.toUpperCase()} • {a.currency}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="font-bold text-lg">
+                      {a.balance.toLocaleString(undefined, {
+                        style: "currency",
+                        currency: a.currency || "CAD",
+                      })}
+                    </div>
+                    {a.goalAmount && a.goalAmount > 0 && (
+                      <div className="text-xs opacity-70 mt-1">
+                        Goal: {a.goalAmount.toLocaleString(undefined, {
+                          style: "currency",
+                          currency: a.currency || "CAD",
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {goalProgress !== null && (
+                  <div className="mt-3">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="opacity-70">Progress</span>
+                      <span className="font-semibold">{goalProgress.toFixed(0)}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-200 rounded-sm overflow-hidden">
+                      <div
+                        className="h-full transition-all duration-300 ease-in-out"
+                        style={{
+                          width: `${goalProgress}%`,
+                          backgroundColor: borderColor,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
