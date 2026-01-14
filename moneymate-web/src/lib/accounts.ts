@@ -64,3 +64,10 @@ export async function updateAccount(accountId: string, input: UpdateAccountInput
   // backend returns { message, account }
   return data.account ?? data;
 }
+
+// Archive account
+export async function archiveAccount(accountId: string): Promise<void> {
+  await apiFetch(`/api/accounts/${accountId}`, {
+    method: "DELETE",
+  });
+}
