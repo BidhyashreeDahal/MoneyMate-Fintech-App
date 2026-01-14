@@ -6,6 +6,7 @@
  */
 
 import { useSession } from "@/providers/SessionProvider";
+import {Button} from "@/components/ui/button";
 
 export default function Topbar() {
   const { user, logout } = useSession();
