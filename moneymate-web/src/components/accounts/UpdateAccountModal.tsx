@@ -43,11 +43,7 @@ type AccountType = (typeof ACCOUNT_TYPES)[number];
 type Props = {
   open: boolean;
   onClose: () => void;
-
-  // IMPORTANT: allow null because your page uses selectedAccount: Account | null
   account: Account | null;
-
-  // IMPORTANT: your page passes handleUpdated(updatedAccount)
   onUpdated: (updated: Account) => void | Promise<void>;
 };
 
@@ -169,9 +165,9 @@ export default function UpdateAccountModal({ open, onClose, account, onUpdated }
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white text-black border border-gray-300">
                 {ACCOUNT_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>
+                  <SelectItem className="text-black data-[highlighted]:bg-gray-100" key={t} value={t}>
                     {t.replace("_", " ").toUpperCase()}
                   </SelectItem>
                 ))}

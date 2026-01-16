@@ -1,44 +1,82 @@
 "use client";
+
 /**
- * Transaction page
+ * Transactions page (bank-style statement)
  * ------------------------------------------------------
- * Fetches transactions from backend**/
-import {useEffect, useState} from "react";
-import {listTransactions, type Transaction} from "@/lib/transactions";
-import {Button} from "@/components/ui/button";
+ * - Loads transactions + accounts
+ * - Shows professional statement table with header row
+ * - Add transaction modal
+ * - notes fallback logic (fixes "—" issue)
+ */
+
+import { useEffect, useMemo, useState } from "react";
+import { listTransactions, type Transaction } from "@/lib/transactions";
+import { listAccounts, type Account } from "@/lib/accounts";
+import { Button } from "@/components/ui/button";
+import CreateTransactionModal from "@/components/transactions/createTransactionModal";
 
 export default function TransactionsPage() {
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    async function loadTransactions() {
-        setLoading(true);
-        setError(null);
-        try{
-            const data = await listTransactions();
-            setTransactions(data || []);
-        } catch (err) {
-            setError((err as Error).message || "Failed to load transactions");
-        } finally {
-            setLoading(false);
-        }
+  const [createOpen, setCreateOpen] = useState(false);
+
+  async function loadTransactions() {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await listTransactions();
+      setTransactions(data || []);
+    } catch (e: any) {
+      setError(e.message || "Failed to load transactions");
+    } finally {
+      setLoading(false);
     }
-    useEffect(() => {
-        loadTransactions();
-    }, []);
+  }
 
-    return (
-    <main>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Transactions</h1>
-        <Button className="font-bold">+ Add transaction</Button>
+  async function loadAccounts() {
+    try {
+      const data = await listAccounts();
+      setAccounts(data || []);
+    } catch {
+      // Not fatal for page
+    }
+  }
+
+  useEffect(() => {
+    loadTransactions();
+    loadAccounts();
+  }, []);
+
+  // Map accountId -> name (so statement shows account names)
+  const accountNameById = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const a of accounts) map[a._id] = a.name;
+    return map;
+  }, [accounts]);
+
+  return (
+          <main>
+            <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Transactions</h1>
+          <p className="opacity-75 mt-1">
+            Your latest income and expenses across accounts.
+          </p>
+        </div>
+
+        <Button className="font-bold" onClick={() => setCreateOpen(true)}>
+          + Add transaction
+        </Button>
       </div>
 
-      {loading && <p>Loading transactions...</p>}
+
+      {loading && <p className="mt-4">Loading transactions...</p>}
 
       {!loading && error && (
-        <div className="mt-3">
+        <div className="mt-4">
           <p className="text-red-600">{error}</p>
           <Button onClick={loadTransactions} variant="outline" className="mt-2">
             Retry
@@ -47,53 +85,85 @@ export default function TransactionsPage() {
       )}
 
       {!loading && !error && transactions.length === 0 && (
-        <p className="opacity-75">
+        <p className="mt-4 opacity-75">
           No transactions yet. Add your first one.
         </p>
       )}
 
       {!loading && !error && transactions.length > 0 && (
-        <div className="mt-4 border rounded-lg overflow-hidden">
-          {transactions.map((t) => (
-            <div
-              key={t._id}
-              className="grid grid-cols-5 gap-4 px-4 py-3 border-b last:border-b-0 items-center"
-            >
-              {/* Date */}
-              <div className="text-sm opacity-75">
-                {new Date(t.date).toLocaleDateString()}
-              </div>
-
-              {/* Description */}
-              <div className="font-medium">
-                {t.description || "—"}
-              </div>
-
-              {/* Category */}
-              <div className="text-sm">{t.category}</div>
-
-              {/* Type */}
-              <div className="text-sm capitalize">{t.type}</div>
-
-              {/* Amount */}
-              <div
-                className={`text-right font-semibold ${
-                  t.type === "expense"
-                    ? "text-red-600"
-                    : "text-green-600"
-                }`}
-              >
-                {t.type === "expense" ? "-" : "+"}
-                {t.amount.toLocaleString(undefined, {
-                  style: "currency",
-                  currency: "CAD",
-                })}
-              </div>
+        <div className="mt-3 rounded-xl border bg-white overflow-hidden">
+          {/* Table header band */}
+          <div className="px-4 py-3 border-b bg-gray-50">
+            <div className="font-semibold">Statement</div>
+            <div className="text-xs opacity-70">
+              Showing {transactions.length} transactions
             </div>
-          ))}
+          </div>
+
+          {/* Column headers */}
+          <div className="grid grid-cols-12 gap-3 px-4 py-2 text-xs font-semibold uppercase tracking-wide opacity-70 border-b">
+            <div className="col-span-2">Date</div>
+            <div className="col-span-4">notes</div>
+            <div className="col-span-2">Category</div>
+            <div className="col-span-2">Account</div>
+            <div className="col-span-2 text-right">Amount</div>
+          </div>
+
+          {/* Rows */}
+          <div>
+            {transactions.map((t) => {
+              const isExpense = t.type === "expense";
+              const displayDesc =
+                t.notes && t.notes.trim()
+                  ? t.notes
+                  : "";
+
+              const accountName = accountNameById[t.accountId] || "—";
+
+              return (
+                <div
+                  key={t._id}
+                  className="grid grid-cols-12 gap-3 px-4 py-3 border-b last:border-b-0 items-center hover:bg-gray-50"
+                >
+                  <div className="col-span-2 text-sm opacity-75">
+                    {new Date(t.date).toLocaleDateString()}
+                  </div>
+
+                  <div className="col-span-4 text-sm truncate">
+                    {displayDesc}
+                  </div>
+
+                  <div className="col-span-2 text-sm">{t.category}</div>
+
+                  <div className="col-span-2 text-sm opacity-80 truncate">
+                    {accountName}
+                  </div>
+                  
+
+                  <div
+                    className={`col-span-2 text-right font-semibold ${
+                      isExpense ? "text-red-600" : "text-green-600"
+                    }`}
+                  >
+                    {isExpense ? "-" : "+"}
+                    {t.amount.toLocaleString(undefined, {
+                      style: "currency",
+                      currency: "CAD",
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
+
+      {/* Modal */}
+      <CreateTransactionModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={loadTransactions}
+      />
     </main>
   );
 }
-
