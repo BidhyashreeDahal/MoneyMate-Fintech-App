@@ -11,17 +11,17 @@ export type Transaction = {
     type: "income" | "expense" | "transfer";
     amount: number;
     category: string;
-    description?: string;
+    notes?: string;
     date: string; // ISO date string
     archived: boolean;
     createdAt?: string;};
 
 export type CreateTransactionInput = {
     accountId: string;
-    type: "income" | "expense" | "transfer";
+    type: "income" | "expense";
     amount: number;
     category: string;
-    description?: string;
+    notes?: string;
     date: string; // ISO date string
 };
 

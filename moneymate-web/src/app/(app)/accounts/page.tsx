@@ -2,103 +2,70 @@
 /**
  * Accounts page
  * ------------------------------------------------------
- * Fetches accounts from backend
- * Shows loading, error and empty state
- */
+ * fetches accounts from backend
+ * shows loading , error and empty state
+ * */
 import { useEffect, useState } from "react";
 import CreateAccountModal from "@/components/accounts/CreateAccountModal";
-import EditAccountModal from "@/components/accounts/UpdateAccountModal";
-import { listAccounts, type Account, archiveAccount } from "@/lib/accounts";
+import { listAccounts, type Account } from "@/lib/accounts";
 import { iconMap } from "@/lib/iconMap.";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import EditAccountModal from "@/components/accounts/UpdateAccountModal";
+
+
 
 export default function AccountsPage() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    const [accounts, setAccounts] = useState<Account[]>([]);
+    const [loading, setLoading] = useState (true);
+    const [error, setError] = useState<string |null>(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
+    const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
 
-  const [modalOpen, setModalOpen] = useState(false);
+function openEdit(account: Account) {
+  setSelectedAccount(account);
+  setEditOpen(true);
+}
 
-  const [editOpen, setEditOpen] = useState(false);
-  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+function handleUpdated(updated: Account) {
+  setAccounts((prev) =>
+    prev.map((a) => (a._id === updated._id ? updated : a))
+  );
+}
 
-  // Archive dialog state
-  const [archiveOpen, setArchiveOpen] = useState(false);
-  const [archiving, setArchiving] = useState(false);
-  const [accountToArchive, setAccountToArchive] = useState<Account | null>(null);
+    async function loadAccounts(){
+        setLoading (true); // show loading state
+        setError (null); // clear previous error
+        try{
+            const data = await listAccounts(); //Call backend: GET http://localhost:5000/api/accounts
+            setAccounts (data || []); // Save account to the react state
+        } catch(e:any){
+            setError (e.message || "Failed to load accounts");
+        }finally{
+            setLoading (false);
+        }
 
-  async function loadAccounts() {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await listAccounts();
-      setAccounts(data || []);
-    } catch (e: any) {
-      setError(e.message || "Failed to load accounts");
-    } finally {
-      setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    loadAccounts();
-  }, []);
-
-  function openEdit(account: Account) {
-    setSelectedAccount(account);
-    setEditOpen(true);
-  }
-
-  function handleUpdated(updated: Account) {
-    setAccounts((prev) => prev.map((a) => (a._id === updated._id ? updated : a)));
-  }
-
-  function openArchive(account: Account) {
-    setAccountToArchive(account);
-    setArchiveOpen(true);
-  }
-
-  function removeFromUI(accountId: string) {
-    setAccounts((prev) => prev.filter((a) => a._id !== accountId));
-  }
-
-  async function confirmArchive() {
-    if (!accountToArchive) return;
-
-    setArchiving(true);
-    setError(null);
-    try {
-      await archiveAccount(accountToArchive._id);
-      removeFromUI(accountToArchive._id);
-
-      setArchiveOpen(false);
-      setAccountToArchive(null);
-    } catch (e: any) {
-      setError(e.message || "Failed to archive account");
-    } finally {
-      setArchiving(false);
-    }
-  }
-
-  return (
+    useEffect(() => {
+        loadAccounts();
+    }, []);
+    
+    return (
     <main>
-      <h1 className="text-2xl font-bold">Accounts</h1>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Accounts</h1>
+          <p className="opacity-75 mt-1">Your accounts</p>
+        </div>
 
-      <div className="mt-3 flex justify-between items-center">
-        <p className="opacity-75">Your accounts</p>
-
-        <Button onClick={() => setModalOpen(true)} className="font-bold">
+        <Button
+          onClick={() => setModalOpen(true)}
+          className="font-bold"
+        >
           + Add account
         </Button>
       </div>
+
 
       {loading && <p className="mt-3">Loading accounts...</p>}
 
@@ -121,16 +88,15 @@ export default function AccountsPage() {
             const IconComponent = a.icon ? iconMap[a.icon] : iconMap.wallet;
             const Icon = IconComponent || iconMap.wallet;
             const borderColor = a.color || "#4F46E5";
-            const goalProgress =
-              a.goalAmount && a.goalAmount > 0
-                ? Math.min((a.balance / a.goalAmount) * 100, 100)
-                : null;
+            const goalProgress = a.goalAmount && a.goalAmount > 0 
+              ? Math.min((a.balance / a.goalAmount) * 100, 100) 
+              : null;
 
             return (
               <div
                 key={a._id}
                 className="border-2 rounded-xl p-4 bg-white"
-                style={{ borderColor }}
+                style={{ borderColor: borderColor }}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3 flex-1">
@@ -143,7 +109,6 @@ export default function AccountsPage() {
                     >
                       <Icon size={20} />
                     </div>
-
                     <div>
                       <div className="font-semibold text-base">{a.name}</div>
                       <div className="text-xs opacity-75 mt-0.5">
@@ -151,32 +116,24 @@ export default function AccountsPage() {
                       </div>
                     </div>
                   </div>
-
-                  <div className="text-right space-y-2">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(a)}>
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
+                <div className="text-right">
+                  <Button
+                        variant="ghost"
                         size="sm"
-                        onClick={() => openArchive(a)}
-                      >
-                        Archive
-                      </Button>
-                    </div>
-
+                        className="mb-2"
+                        onClick={() => openEdit(a)}
+                    >
+                        Edit
+                    </Button>
                     <div className="font-bold text-lg">
                       {a.balance.toLocaleString(undefined, {
                         style: "currency",
                         currency: a.currency || "CAD",
                       })}
                     </div>
-
                     {a.goalAmount && a.goalAmount > 0 && (
-                      <div className="text-xs opacity-70">
-                        Goal:{" "}
-                        {a.goalAmount.toLocaleString(undefined, {
+                      <div className="text-xs opacity-70 mt-1">
+                        Goal: {a.goalAmount.toLocaleString(undefined, {
                           style: "currency",
                           currency: a.currency || "CAD",
                         })}
@@ -212,59 +169,14 @@ export default function AccountsPage() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onCreated={loadAccounts}
-      />
-
-      <EditAccountModal
+        />
+        <EditAccountModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
         account={selectedAccount}
         onUpdated={handleUpdated}
-      />
+        />
 
-      {/* Archive confirmation dialog */}
-      <Dialog
-        open={archiveOpen}
-        onOpenChange={(v) => {
-          setArchiveOpen(v);
-          if (!v) setAccountToArchive(null);
-        }}
-      >
-        <DialogContent className="sm:max-w-[480px]">
-          <DialogHeader>
-            <DialogTitle>Archive account?</DialogTitle>
-            <DialogDescription>
-              This will hide the account from your active list.
-            </DialogDescription>
-          </DialogHeader>
-
-          {accountToArchive && (
-            <div className="rounded-lg border p-3 text-sm">
-              <div className="font-semibold">{accountToArchive.name}</div>
-              <div className="opacity-70">
-                {accountToArchive.type.toUpperCase()} • {accountToArchive.currency}
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              disabled={archiving}
-              onClick={() => setArchiveOpen(false)}
-            >
-              Cancel
-            </Button>
-
-            <Button
-              variant="destructive"
-              disabled={archiving || !accountToArchive}
-              onClick={confirmArchive}
-            >
-              {archiving ? "Archiving..." : "Archive"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </main>
   );
 }
