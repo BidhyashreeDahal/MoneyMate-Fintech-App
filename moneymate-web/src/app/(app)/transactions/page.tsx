@@ -12,8 +12,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { listTransactions, type Transaction } from "@/lib/transactions";
 import { listAccounts, type Account } from "@/lib/accounts";
+import { archiveTransaction } from "@/lib/transactions";
 import { Button } from "@/components/ui/button";
 import CreateTransactionModal from "@/components/transactions/createTransactionModal";
+import UpdateTransactionModal from "@/components/transactions/updateTransactionModal";
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -22,6 +24,8 @@ export default function TransactionsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   async function loadTransactions() {
     setLoading(true);
@@ -56,6 +60,26 @@ export default function TransactionsPage() {
     for (const a of accounts) map[a._id] = a.name;
     return map;
   }, [accounts]);
+
+  function openEdit(tx: Transaction) {
+    setSelectedTx(tx);
+    setEditOpen(true);
+  }
+
+  function handleUpdated(updated: Transaction) {
+    setTransactions((prev) => prev.map((t) => (t._id === updated._id ? updated : t)));
+  }
+
+  async function handleArchive(id: string) {
+    setTransactions((prev) => prev.filter((tx) => tx._id !== id));
+    try {
+      await archiveTransaction(id);
+    } catch (e: any) {
+      await loadTransactions();
+      alert(e?.message || "Failed to archive transaction");
+    }
+    }
+
 
   return (
           <main>
@@ -109,61 +133,82 @@ export default function TransactionsPage() {
             <div className="col-span-2 text-right">Amount</div>
           </div>
 
-          {/* Rows */}
-          <div>
-            {transactions.map((t) => {
-              const isExpense = t.type === "expense";
-              const displayDesc =
-                t.notes && t.notes.trim()
-                  ? t.notes
-                  : "";
+      {/* Rows */}
+      <div>
+        {transactions.map((t) => {
+          const isExpense = t.type === "expense";
+          const isTransferTx =
+            t.category === "Transfer In" || t.category === "Transfer Out" || t.type === "transfer";
+          const displayDesc =
+            t.notes && t.notes.trim()
+              ? t.notes
+              : "";
 
-              const accountName = accountNameById[t.accountId] || "—";
+          const accountName = accountNameById[t.accountId] || "—";
 
-              return (
-                <div
-                  key={t._id}
-                  className="grid grid-cols-12 gap-3 px-4 py-3 border-b last:border-b-0 items-center hover:bg-gray-50"
-                >
-                  <div className="col-span-2 text-sm opacity-75">
-                    {new Date(t.date).toLocaleDateString()}
-                  </div>
+          return (
+            <div key={t._id}
+             className="grid grid-cols-12 gap-3 px-4 py-3 border-b last:border-b-0 items-center hover:bg-gray-50">
+                <div className="col-span-2 text-sm opacity-75">
+                  {new Date(t.date).toLocaleDateString()}
+                </div>
 
-                  <div className="col-span-4 text-sm truncate">
-                    {displayDesc}
-                  </div>
+                <div className="col-span-4 text-sm truncate">
+                  {displayDesc}
+                </div>
 
-                  <div className="col-span-2 text-sm">{t.category}</div>
+                <div className="col-span-2 text-sm">{t.category}</div>
 
-                  <div className="col-span-2 text-sm opacity-80 truncate">
-                    {accountName}
-                  </div>
-                  
+                <div className="col-span-2 text-sm opacity-80 truncate">
+                  {accountName}
+                </div>
 
-                  <div
-                    className={`col-span-2 text-right font-semibold ${
-                      isExpense ? "text-red-600" : "text-green-600"
-                    }`}
-                  >
+                <div className="col-span-2 text-right">
+                  <div className={`font-semibold ${isExpense ? "text-red-600" : "text-green-600"}`}>
                     {isExpense ? "-" : "+"}
                     {t.amount.toLocaleString(undefined, {
                       style: "currency",
-                      currency: "CAD",
+                      currency: t.currency || "CAD",
                     })}
                   </div>
+                  <div className="mt-1 flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={isTransferTx}
+                      onClick={() => openEdit(t)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleArchive(t._id)}
+                    >
+                      Archive
+                    </Button>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+              </div>
+          );
+        })}
+      </div>
+    </div>
+  )}
 
-      {/* Modal */}
-      <CreateTransactionModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onCreated={loadTransactions}
-      />
-    </main>
+  {/* Modal */}
+  <CreateTransactionModal
+    open={createOpen}
+    onClose={() => setCreateOpen(false)}
+    onCreated={loadTransactions}
+  />
+  <UpdateTransactionModal
+    open={editOpen}
+    onClose={() => setEditOpen(false)}
+    transaction={selectedTx}
+    accounts={accounts}
+    onUpdated={handleUpdated}
+  />
+</main>
   );
 }
