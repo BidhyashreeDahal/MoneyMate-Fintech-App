@@ -3,17 +3,19 @@
  * Handles API class for transactions
  */
 
-import { apiFetch } from "./api";
+import { apiFetch, API_BASE } from "./api";
 export type Transaction = {
     _id: string;
     userId: string;
     accountId: string;
     type: "income" | "expense" | "transfer";
     amount: number;
+    currency?: string;
     category: string;
     notes?: string;
     date: string; // ISO date string
     archived: boolean;
+    receiptUrl?: string;
     createdAt?: string;};
 
 export type CreateTransactionInput = {
@@ -58,4 +60,29 @@ export async function archiveTransaction(id: string): Promise<void> {
     await apiFetch(`/api/transactions/${id}`, {
         method: "DELETE",
     });
+}
+
+export async function uploadReceipt(id: string, file: File): Promise<Transaction> {
+    const formData = new FormData();
+    formData.append("receipt", file);
+
+    const res = await fetch(`${API_BASE}/api/transactions/${id}/receipt`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+    });
+
+    if (!res.ok) {
+        let message = "Upload failed";
+        try {
+            const data = await res.json();
+            message = data?.message || message;
+        } catch {
+            // keep default
+        }
+        throw new Error(message);
+    }
+
+    const data = await res.json();
+    return data.transaction ?? data;
 }
