@@ -7,7 +7,7 @@
  * */
 import { useEffect, useState } from "react";
 import CreateAccountModal from "@/components/accounts/CreateAccountModal";
-import { listAccounts, type Account } from "@/lib/accounts";
+import { listAccounts, type Account, archiveAccount } from "@/lib/accounts";
 import { iconMap } from "@/lib/iconMap.";
 import { Button } from "@/components/ui/button";
 import EditAccountModal from "@/components/accounts/UpdateAccountModal";
@@ -33,6 +33,18 @@ function handleUpdated(updated: Account) {
   );
 }
 
+async function handleArchive(account: Account) {
+  const ok = window.confirm(`Archive "${account.name}"? This cannot be undone.`);
+  if (!ok) return;
+  setAccounts((prev) => prev.filter((a) => a._id !== account._id));
+  try {
+    await archiveAccount(account._id);
+  } catch (e: any) {
+    await loadAccounts();
+    alert(e?.message || "Failed to archive account");
+  }
+}
+
     async function loadAccounts(){
         setLoading (true); // show loading state
         setError (null); // clear previous error
@@ -52,20 +64,18 @@ function handleUpdated(updated: Account) {
     
     return (
     <main>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Accounts</h1>
-          <p className="opacity-75 mt-1">Your accounts</p>
+      <h1 className="text-2xl font-bold">Accounts</h1>
+
+        <div className="mt-3 flex justify-between items-center">
+            <p className="opacity-75">Your accounts</p>
+
+            <Button
+                onClick={() => setModalOpen(true)}
+                className="font-bold"
+            >
+                + Add account
+            </Button>
         </div>
-
-        <Button
-          onClick={() => setModalOpen(true)}
-          className="font-bold"
-        >
-          + Add account
-        </Button>
-      </div>
-
 
       {loading && <p className="mt-3">Loading accounts...</p>}
 
@@ -124,6 +134,14 @@ function handleUpdated(updated: Account) {
                         onClick={() => openEdit(a)}
                     >
                         Edit
+                    </Button>
+                  <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mb-2"
+                        onClick={() => handleArchive(a)}
+                    >
+                        Archive
                     </Button>
                     <div className="font-bold text-lg">
                       {a.balance.toLocaleString(undefined, {

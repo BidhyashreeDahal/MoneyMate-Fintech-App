@@ -23,7 +23,7 @@ export default function LoginPage() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        setError
+        setError(null);
         setSubmitting(true);
         try {
             await apiLogin(email, password);
@@ -57,6 +57,9 @@ export default function LoginPage() {
         </button>
 
         {error && <p style={{ color: "crimson" }}>{error}</p>}
+        <p style={{ fontSize: 13, opacity: 0.75 }}>
+          Don't have an account? <a href="/signup">Sign up</a>
+        </p>
       </form>
     </main>
   );

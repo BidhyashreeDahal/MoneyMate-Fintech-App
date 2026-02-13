@@ -71,6 +71,8 @@ export default function TransactionsPage() {
   }
 
   async function handleArchive(id: string) {
+    const ok = window.confirm("Archive this transaction? This cannot be undone.");
+    if (!ok) return;
     setTransactions((prev) => prev.filter((tx) => tx._id !== id));
     try {
       await archiveTransaction(id);
