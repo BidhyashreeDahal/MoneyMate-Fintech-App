@@ -35,6 +35,17 @@ const COLORS = [
   "#EF4444",
 ];
 
+// Safe currency formatter
+function formatCurrency(value: any) {
+  const safe =
+    typeof value === "number" ? value : 0;
+
+  return safe.toLocaleString(undefined, {
+    style: "currency",
+    currency: "CAD",
+  });
+}
+
 export default function InsightsPage() {
   const [summary, setSummary] =
     useState<Summary | null>(null);
@@ -64,8 +75,10 @@ export default function InsightsPage() {
       ]);
 
       setSummary({
-        totalIncome: summaryData?.totalIncome ?? 0,
-        totalExpense: summaryData?.totalExpense ?? 0,
+        totalIncome:
+          summaryData?.totalIncome ?? 0,
+        totalExpense:
+          summaryData?.totalExpense ?? 0,
         net:
           summaryData?.net ??
           (summaryData?.totalIncome ?? 0) -
@@ -164,17 +177,10 @@ export default function InsightsPage() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis
-                  tickFormatter={(value) =>
-                    `$${value}`
-                  }
+                  tickFormatter={formatCurrency}
                 />
                 <Tooltip
-                  formatter={(value: number) =>
-                    value.toLocaleString(undefined, {
-                      style: "currency",
-                      currency: "CAD",
-                    })
-                  }
+                  formatter={formatCurrency}
                 />
                 <Line
                   type="monotone"
@@ -235,12 +241,7 @@ export default function InsightsPage() {
                   )}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) =>
-                    value.toLocaleString(undefined, {
-                      style: "currency",
-                      currency: "CAD",
-                    })
-                  }
+                  formatter={formatCurrency}
                 />
                 <Legend />
               </PieChart>
@@ -274,10 +275,7 @@ function SummaryCard({
       <div
         className={`text-3xl font-semibold mt-3 tracking-tight ${accentStyles}`}
       >
-        {value.toLocaleString(undefined, {
-          style: "currency",
-          currency: "CAD",
-        })}
+        {formatCurrency(value)}
       </div>
     </div>
   );
