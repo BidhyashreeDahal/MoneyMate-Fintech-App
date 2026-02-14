@@ -118,3 +118,19 @@ export const createTransfer = async (req, res) => {
     session.endSession();
   }
 };
+
+// GET /api/transfers - list transfers for user
+export const getTransfers = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const transfers = await Transfer.find({ userId })
+      .sort({ date: -1 })
+      .populate("fromAccountId", "name currency")
+      .populate("toAccountId", "name currency");
+
+    return res.status(200).json({ transfers });
+  } catch (error) {
+    console.error("Get Transfers error:", error);
+    return res.status(500).json({ message: "Server error fetching transfers" });
+  }
+};
