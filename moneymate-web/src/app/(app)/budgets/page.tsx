@@ -1,23 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  listBudgets,
-  deleteBudget,
-  updateBudget,
-  type Budget,
-} from "@/lib/budgets";
+import { listBudgets, type Budget } from "@/lib/budgets";
 import { Button } from "@/components/ui/button";
-import CreateBudgetModal from "@/components/budgets/CreateBudgetModal";
+import CreateBudgetModal from "@/components/budgets/createBudgetModal";
+import EditBudgetModal from "@/components/budgets/EditBudgetModal";
 
 export default function BudgetsPage() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editBudget, setEditBudget] =
-    useState<Budget | null>(null);
 
   async function loadBudgets() {
     setLoading(true);
@@ -37,6 +29,7 @@ export default function BudgetsPage() {
     loadBudgets();
   }, []);
 
+  // Sort budgets by highest percent used (most urgent first)
   const sortedBudgets = useMemo(() => {
     return [...budgets].sort(
       (a, b) => b.percentUsed - a.percentUsed
@@ -47,25 +40,17 @@ export default function BudgetsPage() {
     <main>
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">
-            Budgets
-          </h1>
+          <h1 className="text-2xl font-bold">Budgets</h1>
           <p className="opacity-70 mt-1">
             Monitor spending by category.
           </p>
         </div>
 
-        <Button
-          onClick={() => setCreateOpen(true)}
-        >
-          Create Budget
-        </Button>
+        <Button>Create Budget</Button>
       </div>
 
       {loading && (
-        <p className="mt-4">
-          Loading budgets...
-        </p>
+        <p className="mt-4">Loading budgets...</p>
       )}
 
       {error && !loading && (
@@ -74,66 +59,26 @@ export default function BudgetsPage() {
         </p>
       )}
 
-      {!loading &&
-        !error &&
-        sortedBudgets.length === 0 && (
-          <p className="mt-4 opacity-70">
-            No budgets created yet.
-          </p>
-        )}
+      {!loading && !error && sortedBudgets.length === 0 && (
+        <p className="mt-4 opacity-70">
+          No budgets created yet.
+        </p>
+      )}
 
-      {!loading &&
-        !error &&
-        sortedBudgets.length > 0 && (
-          <div className="mt-6 space-y-4">
-            {sortedBudgets.map((budget) => (
-              <BudgetCard
-                key={budget._id}
-                budget={budget}
-                onArchive={async () => {
-                  await deleteBudget(
-                    budget._id
-                  );
-                  loadBudgets();
-                }}
-                onEdit={() =>
-                  setEditBudget(budget)
-                }
-              />
-            ))}
-          </div>
-        )}
-
-      <CreateBudgetModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onCreated={loadBudgets}
-      />
-
-      {editBudget && (
-        <EditBudgetModal
-          budget={editBudget}
-          onClose={() =>
-            setEditBudget(null)
-          }
-          onUpdated={() => {
-            setEditBudget(null);
-            loadBudgets();
-          }}
-        />
+      {!loading && !error && sortedBudgets.length > 0 && (
+        <div className="mt-6 space-y-4">
+          {sortedBudgets.map((budget) => (
+            <BudgetCard
+              key={budget._id}
+              budget={budget}
+            />
+          ))}
+        </div>
       )}
     </main>
   );
 }
-function BudgetCard({
-  budget,
-  onArchive,
-  onEdit,
-}: {
-  budget: Budget;
-  onArchive: () => void;
-  onEdit: () => void;
-}) {
+function BudgetCard({ budget }: { budget: Budget }) {
   const progressWidth = Math.min(
     budget.percentUsed,
     100
@@ -152,6 +97,7 @@ function BudgetCard({
           <h2 className="text-lg font-semibold">
             {budget.category}
           </h2>
+
           <p className="text-sm opacity-70">
             {new Date(
               budget.startDate
@@ -181,6 +127,7 @@ function BudgetCard({
               }
             )}
           </div>
+
           <div className="text-sm opacity-70">
             {budget.percentUsed}% used
           </div>
@@ -190,9 +137,7 @@ function BudgetCard({
       <div className="mt-4 w-full bg-gray-200 rounded h-2">
         <div
           className={`h-2 rounded ${barColor}`}
-          style={{
-            width: `${progressWidth}%`,
-          }}
+          style={{ width: `${progressWidth}%` }}
         />
       </div>
 
@@ -208,24 +153,20 @@ function BudgetCard({
           )}
         </span>
 
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onEdit}
-          >
-            Edit
-          </Button>
+        {budget.isOverBudget && (
+          <span className="text-red-600 font-medium">
+            Over budget
+          </span>
+        )}
 
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onArchive}
-          >
-            Archive
-          </Button>
-        </div>
+        {!budget.isOverBudget &&
+          budget.alertTriggered && (
+            <span className="text-yellow-600 font-medium">
+              Approaching limit
+            </span>
+          )}
       </div>
     </div>
   );
 }
+
