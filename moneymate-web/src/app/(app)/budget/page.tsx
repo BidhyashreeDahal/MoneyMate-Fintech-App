@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { listBudgets, type Budget } from "@/lib/budgets";
 import { Button } from "@/components/ui/button";
 
@@ -27,6 +27,13 @@ export default function BudgetsPage() {
     loadBudgets();
   }, []);
 
+  // Sort budgets by highest percent used (most urgent first)
+  const sortedBudgets = useMemo(() => {
+    return [...budgets].sort(
+      (a, b) => b.percentUsed - a.percentUsed
+    );
+  }, [budgets]);
+
   return (
     <main>
       <div className="flex items-start justify-between">
@@ -40,22 +47,29 @@ export default function BudgetsPage() {
         <Button>Create Budget</Button>
       </div>
 
-      {loading && <p className="mt-4">Loading budgets...</p>}
-
-      {error && !loading && (
-        <p className="mt-4 text-red-600">{error}</p>
+      {loading && (
+        <p className="mt-4">Loading budgets...</p>
       )}
 
-      {!loading && budgets.length === 0 && (
+      {error && !loading && (
+        <p className="mt-4 text-red-600">
+          {error}
+        </p>
+      )}
+
+      {!loading && !error && sortedBudgets.length === 0 && (
         <p className="mt-4 opacity-70">
           No budgets created yet.
         </p>
       )}
 
-      {!loading && budgets.length > 0 && (
+      {!loading && !error && sortedBudgets.length > 0 && (
         <div className="mt-6 space-y-4">
-          {budgets.map((budget) => (
-            <BudgetCard key={budget._id} budget={budget} />
+          {sortedBudgets.map((budget) => (
+            <BudgetCard
+              key={budget._id}
+              budget={budget}
+            />
           ))}
         </div>
       )}
@@ -63,7 +77,10 @@ export default function BudgetsPage() {
   );
 }
 function BudgetCard({ budget }: { budget: Budget }) {
-  const progressWidth = Math.min(budget.percentUsed, 100);
+  const progressWidth = Math.min(
+    budget.percentUsed,
+    100
+  );
 
   const barColor = budget.isOverBudget
     ? "bg-red-500"
@@ -72,30 +89,43 @@ function BudgetCard({ budget }: { budget: Budget }) {
     : "bg-blue-500";
 
   return (
-    <div className="rounded-xl border p-4 bg-white">
+    <div className="rounded-xl border bg-white p-5">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="font-semibold text-lg">
+          <h2 className="text-lg font-semibold">
             {budget.category}
           </h2>
+
           <p className="text-sm opacity-70">
-            {new Date(budget.startDate).toLocaleDateString()} -{" "}
-            {new Date(budget.endDate).toLocaleDateString()}
+            {new Date(
+              budget.startDate
+            ).toLocaleDateString()}{" "}
+            –{" "}
+            {new Date(
+              budget.endDate
+            ).toLocaleDateString()}
           </p>
         </div>
 
         <div className="text-right">
           <div className="font-semibold">
-            {budget.spendAmount.toLocaleString(undefined, {
-              style: "currency",
-              currency: "CAD",
-            })}
+            {budget.spendAmount.toLocaleString(
+              undefined,
+              {
+                style: "currency",
+                currency: "CAD",
+              }
+            )}
             {" / "}
-            {budget.limitAmount.toLocaleString(undefined, {
-              style: "currency",
-              currency: "CAD",
-            })}
+            {budget.limitAmount.toLocaleString(
+              undefined,
+              {
+                style: "currency",
+                currency: "CAD",
+              }
+            )}
           </div>
+
           <div className="text-sm opacity-70">
             {budget.percentUsed}% used
           </div>
@@ -112,10 +142,13 @@ function BudgetCard({ budget }: { budget: Budget }) {
       <div className="mt-3 flex justify-between text-sm">
         <span>
           Remaining:{" "}
-          {budget.remaining.toLocaleString(undefined, {
-            style: "currency",
-            currency: "CAD",
-          })}
+          {budget.remaining.toLocaleString(
+            undefined,
+            {
+              style: "currency",
+              currency: "CAD",
+            }
+          )}
         </span>
 
         {budget.isOverBudget && (
@@ -124,11 +157,12 @@ function BudgetCard({ budget }: { budget: Budget }) {
           </span>
         )}
 
-        {!budget.isOverBudget && budget.alertTriggered && (
-          <span className="text-yellow-600 font-medium">
-            Approaching limit
-          </span>
-        )}
+        {!budget.isOverBudget &&
+          budget.alertTriggered && (
+            <span className="text-yellow-600 font-medium">
+              Approaching limit
+            </span>
+          )}
       </div>
     </div>
   );
