@@ -1,6 +1,7 @@
 /**
  * Budgets API helpers
  */
+
 import { apiFetch } from "./api";
 
 export type Budget = {
@@ -12,13 +13,13 @@ export type Budget = {
   endDate: string;
   alertThreshold: number;
   archived: boolean;
-};
 
-export type BudgetWithStats = {
-  budget: Budget;
+  // Calculated fields from backend
   spendAmount: number;
   remaining: number;
   percentUsed: number;
+  remainingPercent: number;
+  isOverBudget: boolean;
   alertTriggered: boolean;
 };
 
@@ -32,30 +33,41 @@ export type CreateBudgetInput = {
 
 export type UpdateBudgetInput = Partial<CreateBudgetInput>;
 
-export async function listBudgets(): Promise<BudgetWithStats[]> {
+export async function listBudgets(): Promise<Budget[]> {
   const data = await apiFetch<any>("/api/budgets");
+
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.budgets)) return data.budgets;
+
   return [];
 }
 
-export async function createBudget(input: CreateBudgetInput): Promise<Budget> {
+export async function createBudget(
+  input: CreateBudgetInput
+): Promise<Budget> {
   const data = await apiFetch<any>("/api/budgets", {
     method: "POST",
     body: JSON.stringify(input),
   });
+
   return data.budget ?? data;
 }
 
-export async function updateBudget(budgetId: string, input: UpdateBudgetInput): Promise<Budget> {
+export async function updateBudget(
+  budgetId: string,
+  input: UpdateBudgetInput
+): Promise<Budget> {
   const data = await apiFetch<any>(`/api/budgets/${budgetId}`, {
     method: "PUT",
     body: JSON.stringify(input),
   });
+
   return data.budget ?? data;
 }
 
-export async function deleteBudget(budgetId: string): Promise<void> {
+export async function deleteBudget(
+  budgetId: string
+): Promise<void> {
   await apiFetch<any>(`/api/budgets/${budgetId}`, {
     method: "DELETE",
   });
