@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import CreateBudgetModal from "@/components/budgets/createBudgetModal";
 import EditBudgetModal from "@/components/budgets/EditBudgetModal";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function BudgetsPage() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -18,6 +19,10 @@ export default function BudgetsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editBudget, setEditBudget] =
     useState<Budget | null>(null);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiveTarget, setArchiveTarget] =
+    useState<Budget | null>(null);
+  const [archiving, setArchiving] = useState(false);
 
   async function loadBudgets() {
     setLoading(true);
@@ -43,23 +48,87 @@ export default function BudgetsPage() {
     );
   }, [budgets]);
 
+  const summary = useMemo(() => {
+    const totalLimit = budgets.reduce(
+      (sum, b) => sum + b.limitAmount,
+      0
+    );
+    const totalSpent = budgets.reduce(
+      (sum, b) => sum + b.spendAmount,
+      0
+    );
+    const overCount = budgets.filter(
+      (b) => b.isOverBudget
+    ).length;
+    return {
+      totalLimit,
+      totalSpent,
+      totalRemaining: totalLimit - totalSpent,
+      overCount,
+      count: budgets.length,
+    };
+  }, [budgets]);
+
   return (
     <main className="space-y-6">
-      <div className="flex items-center justify-between border-b pb-4">
-        <div>
-          <h1 className="text-3xl font-semibold">
-            Budgets
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Track spending by category and control financial limits.
-          </p>
+      <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold">
+              Budgets
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Track spending by category and control financial limits.
+            </p>
+          </div>
+
+          <Button
+            onClick={() => setCreateOpen(true)}
+          >
+            + Create Budget
+          </Button>
         </div>
 
-        <Button
-          onClick={() => setCreateOpen(true)}
-        >
-          + Create Budget
-        </Button>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+            <div className="text-xs font-semibold text-emerald-700">
+              Total Budgets
+            </div>
+            <div className="text-2xl font-semibold text-gray-900 mt-1">
+              {summary.count}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4">
+            <div className="text-xs font-semibold text-emerald-700">
+              Total Limit
+            </div>
+            <div className="text-xl font-semibold text-gray-900 mt-1">
+              {summary.totalLimit.toLocaleString(undefined, {
+                style: "currency",
+                currency: "CAD",
+              })}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4">
+            <div className="text-xs font-semibold text-emerald-700">
+              Spent
+            </div>
+            <div className="text-xl font-semibold text-gray-900 mt-1">
+              {summary.totalSpent.toLocaleString(undefined, {
+                style: "currency",
+                currency: "CAD",
+              })}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4">
+            <div className="text-xs font-semibold text-emerald-700">
+              Over Budget
+            </div>
+            <div className="text-xl font-semibold text-gray-900 mt-1">
+              {summary.overCount}
+            </div>
+          </div>
+        </div>
       </div>
 
       {loading && (
@@ -77,9 +146,19 @@ export default function BudgetsPage() {
       {!loading &&
         !error &&
         sortedBudgets.length === 0 && (
-          <p className="text-sm text-gray-500">
-            No budgets created yet.
-          </p>
+          <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-10 text-center">
+            <div className="text-sm font-semibold text-gray-900">
+              No budgets created yet
+            </div>
+            <div className="text-sm text-gray-500 mt-2">
+              Start by adding a budget to keep spending on track.
+            </div>
+            <div className="mt-4">
+              <Button onClick={() => setCreateOpen(true)}>
+                Create your first budget
+              </Button>
+            </div>
+          </div>
         )}
 
       {!loading &&
@@ -90,11 +169,9 @@ export default function BudgetsPage() {
               <BudgetCard
                 key={budget._id}
                 budget={budget}
-                onArchive={async () => {
-                  await deleteBudget(
-                    budget._id
-                  );
-                  loadBudgets();
+                onArchive={() => {
+                  setArchiveTarget(budget);
+                  setArchiveOpen(true);
                 }}
                 onEdit={() =>
                   setEditBudget(budget)
@@ -122,6 +199,35 @@ export default function BudgetsPage() {
           }}
         />
       )}
+      <ConfirmDialog
+        open={archiveOpen}
+        title="Archive budget?"
+        description="Archive this budget? You can recreate it later if needed."
+        confirmText="Archive"
+        onConfirm={async () => {
+          if (!archiveTarget) return;
+          const target = archiveTarget;
+          setArchiving(true);
+          setArchiveOpen(false);
+          setArchiveTarget(null);
+          try {
+            await deleteBudget(target._id);
+            loadBudgets();
+          } catch (e: any) {
+            setError(
+              e?.message || "Failed to archive budget"
+            );
+          } finally {
+            setArchiving(false);
+          }
+        }}
+        onCancel={() => {
+          if (archiving) return;
+          setArchiveOpen(false);
+          setArchiveTarget(null);
+        }}
+        loading={archiving}
+      />
     </main>
   );
 }
@@ -142,14 +248,14 @@ function BudgetCard({
   const barColor = budget.isOverBudget
     ? "bg-red-500"
     : budget.alertTriggered
-    ? "bg-yellow-500"
-    : "bg-blue-500";
+    ? "bg-amber-500"
+    : "bg-emerald-500";
 
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md transition">
+    <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm hover:shadow-md transition">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-lg font-semibold text-gray-900">
             {budget.category}
           </h2>
 
@@ -162,6 +268,9 @@ function BudgetCard({
               budget.endDate
             ).toLocaleDateString()}
           </p>
+          <div className="mt-2 inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+            Alert at {budget.alertThreshold}%
+          </div>
         </div>
 
         <div className="text-right">
@@ -189,7 +298,7 @@ function BudgetCard({
         </div>
       </div>
 
-      <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
+      <div className="mt-4 w-full bg-emerald-100/60 rounded-full h-2">
         <div
           className={`h-2 rounded-full ${barColor}`}
           style={{
@@ -198,7 +307,7 @@ function BudgetCard({
         />
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <span className="text-sm text-gray-600">
           Remaining:{" "}
           {budget.remaining.toLocaleString(
@@ -237,7 +346,7 @@ function BudgetCard({
 
       {!budget.isOverBudget &&
         budget.alertTriggered && (
-          <div className="mt-3 text-sm text-yellow-600 font-medium">
+          <div className="mt-3 text-sm text-amber-600 font-medium">
             Approaching limit
           </div>
         )}

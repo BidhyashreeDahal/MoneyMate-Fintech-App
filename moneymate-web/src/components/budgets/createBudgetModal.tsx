@@ -31,7 +31,7 @@ export default function CreateBudgetModal({
     setError(null);
 
     if (!category || !limitAmount || !startDate || !endDate) {
-      setError("All fields are required");
+      setError("All fields are required.");
       return;
     }
 
@@ -48,73 +48,144 @@ export default function CreateBudgetModal({
 
       onCreated();
       onClose();
+
+      // Reset fields after close
+      setCategory("");
+      setLimitAmount("");
+      setStartDate("");
+      setEndDate("");
+      setAlertThreshold("80");
     } catch (e: any) {
-      setError(e?.message || "Failed to create budget");
+      setError(
+        e?.message || "Failed to create budget."
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
-        <h2 className="text-lg font-semibold mb-4">
-          Create Budget
-        </h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
+        <div className="px-6 py-5 bg-gradient-to-br from-emerald-600 to-emerald-500 text-white">
+          <h2 className="text-xl font-semibold">
+            Create Budget
+          </h2>
+          <p className="text-sm text-emerald-50 mt-1">
+            Set a limit and time window to stay on track.
+          </p>
+        </div>
+        <div className="p-6 space-y-6">
 
         {error && (
-          <p className="text-red-600 mb-3">{error}</p>
+          <div className="text-sm text-red-600">
+            {error}
+          </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <input
-            placeholder="Category"
-            value={category}
-            onChange={(e) =>
-              setCategory(e.target.value)
-            }
-            className="w-full border rounded px-3 py-2"
-          />
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+        >
+          {/* Category */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Category
+            </label>
+            <input
+              value={category}
+              onChange={(e) =>
+                setCategory(e.target.value)
+              }
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="Groceries"
+            />
+          </div>
 
-          <input
-            type="number"
-            placeholder="Limit Amount"
-            value={limitAmount}
-            onChange={(e) =>
-              setLimitAmount(e.target.value)
-            }
-            className="w-full border rounded px-3 py-2"
-          />
+          {/* Limit */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Monthly Limit
+            </label>
+            <input
+              type="number"
+              value={limitAmount}
+              onChange={(e) =>
+                setLimitAmount(e.target.value)
+              }
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="500"
+              min={0}
+            />
+          </div>
 
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) =>
-              setStartDate(e.target.value)
-            }
-            className="w-full border rounded px-3 py-2"
-          />
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) =>
+                  setStartDate(e.target.value)
+                }
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+            </div>
 
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) =>
-              setEndDate(e.target.value)
-            }
-            className="w-full border rounded px-3 py-2"
-          />
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) =>
+                  setEndDate(e.target.value)
+                }
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+            </div>
+          </div>
 
-          <input
-            type="number"
-            placeholder="Alert Threshold (%)"
-            value={alertThreshold}
-            onChange={(e) =>
-              setAlertThreshold(e.target.value)
-            }
-            className="w-full border rounded px-3 py-2"
-          />
+          {/* Alert Threshold */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Alert Threshold (%)
+            </label>
+            <input
+              type="number"
+              value={alertThreshold}
+              onChange={(e) =>
+                setAlertThreshold(
+                  e.target.value
+                )
+              }
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="80"
+              min={0}
+              max={100}
+            />
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={Number(alertThreshold) || 0}
+              onChange={(e) =>
+                setAlertThreshold(e.target.value)
+              }
+              className="w-full accent-emerald-600"
+            />
+            <p className="text-xs text-gray-500">
+              You will be notified when spending reaches this percentage.
+            </p>
+          </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          {/* Footer */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
             <Button
               type="button"
               variant="outline"
@@ -123,11 +194,17 @@ export default function CreateBudgetModal({
               Cancel
             </Button>
 
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create"}
+            <Button
+              type="submit"
+              disabled={loading}
+            >
+              {loading
+                ? "Creating..."
+                : "Create Budget"}
             </Button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

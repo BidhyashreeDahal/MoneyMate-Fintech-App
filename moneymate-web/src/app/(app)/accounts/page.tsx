@@ -11,6 +11,7 @@ import { listAccounts, type Account, archiveAccount } from "@/lib/accounts";
 import { iconMap } from "@/lib/iconMap.";
 import { Button } from "@/components/ui/button";
 import EditAccountModal from "@/components/accounts/UpdateAccountModal";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 
 
@@ -21,6 +22,9 @@ export default function AccountsPage() {
     const [modalOpen, setModalOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+    const [archiveOpen, setArchiveOpen] = useState(false);
+    const [archiveTarget, setArchiveTarget] = useState<Account | null>(null);
+    const [archiving, setArchiving] = useState(false);
 
 function openEdit(account: Account) {
   setSelectedAccount(account);
@@ -33,15 +37,25 @@ function handleUpdated(updated: Account) {
   );
 }
 
-async function handleArchive(account: Account) {
-  const ok = window.confirm(`Archive "${account.name}"? This cannot be undone.`);
-  if (!ok) return;
-  setAccounts((prev) => prev.filter((a) => a._id !== account._id));
+function requestArchive(account: Account) {
+  setArchiveTarget(account);
+  setArchiveOpen(true);
+}
+
+async function confirmArchive() {
+  if (!archiveTarget) return;
+  const target = archiveTarget;
+  setArchiving(true);
+  setArchiveOpen(false);
+  setArchiveTarget(null);
+  setAccounts((prev) => prev.filter((a) => a._id !== target._id));
   try {
-    await archiveAccount(account._id);
+    await archiveAccount(target._id);
   } catch (e: any) {
     await loadAccounts();
-    alert(e?.message || "Failed to archive account");
+    setError(e?.message || "Failed to archive account");
+  } finally {
+    setArchiving(false);
   }
 }
 
@@ -135,11 +149,11 @@ async function handleArchive(account: Account) {
                     >
                         Edit
                     </Button>
-                  <Button
+                    <Button
                         variant="ghost"
                         size="sm"
                         className="mb-2"
-                        onClick={() => handleArchive(a)}
+                        onClick={() => requestArchive(a)}
                     >
                         Archive
                     </Button>
@@ -193,6 +207,23 @@ async function handleArchive(account: Account) {
         onClose={() => setEditOpen(false)}
         account={selectedAccount}
         onUpdated={handleUpdated}
+        />
+        <ConfirmDialog
+          open={archiveOpen}
+          title="Archive account?"
+          description={
+            archiveTarget
+              ? `Archive "${archiveTarget.name}"? This cannot be undone.`
+              : "Archive this account? This cannot be undone."
+          }
+          confirmText="Archive"
+          onConfirm={confirmArchive}
+          onCancel={() => {
+            if (archiving) return;
+            setArchiveOpen(false);
+            setArchiveTarget(null);
+          }}
+          loading={archiving}
         />
 
     </main>
