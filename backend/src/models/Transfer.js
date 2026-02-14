@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const transactionSchema = new mongoose.Schema(
+const transferSchema = new mongoose.Schema(
     {
         // The user who initiated this transfer
         userId: {
@@ -53,7 +53,7 @@ const transactionSchema = new mongoose.Schema(
     },
         { timestamps: true }
 );
-export default mongoose.model("Transfer", transactionSchema);
+export default mongoose.model("Transfer", transferSchema);
 
 
 

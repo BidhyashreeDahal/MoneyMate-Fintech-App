@@ -119,3 +119,25 @@ export const logout = (req, res) => {
     return res.status(500).json({ message: 'Server error during logout' });
   }
 };
+
+// GET /api/auth/me
+export const me = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("_id name email");
+    if (!user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    return res.status(200).json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Me error:", error);
+    return res.status(500).json({ message: "Server error fetching session" });
+  }
+};
