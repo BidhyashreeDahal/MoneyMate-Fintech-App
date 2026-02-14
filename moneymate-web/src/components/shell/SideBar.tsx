@@ -21,7 +21,17 @@ export default function Sidebar() {
     return(
         <div className="h-full p-4">
             {/*logo*/}
-            <div className="mb-6 text-lg font-semibold text-indigo-600">MoneyMate</div>
+            <div className="mb-6 flex items-center gap-3">
+                <img
+                    src="/moneymate-logo.png"
+                    alt="MoneyMate logo"
+                    className="h-10 w-10 rounded-md"
+                />
+                <div>
+                    <div className="text-base font-semibold text-gray-900">MoneyMate</div>
+                    <div className="text-xs text-gray-500">Personal Finance</div>
+                </div>
+            </div>
             {/*navigation*/}
             <nav className="space-y-1">
                 {nav.map((item) => {
@@ -33,8 +43,8 @@ export default function Sidebar() {
                         className={clsx(
                             "block rounded-md px-3 py-2 text-sm font-medium transition-colors",
                             isActive
-                                ? "bg-indigo-100 text-indigo-700"
-                                : "text-gray-700 hover:bg-gray-100"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "text-gray-700 hover:bg-emerald-50"
                         )}
                         >
                             {item.label}
