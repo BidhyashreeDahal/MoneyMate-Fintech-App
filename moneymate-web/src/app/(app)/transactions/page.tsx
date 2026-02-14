@@ -16,6 +16,7 @@ import { archiveTransaction } from "@/lib/transactions";
 import { Button } from "@/components/ui/button";
 import CreateTransactionModal from "@/components/transactions/createTransactionModal";
 import UpdateTransactionModal from "@/components/transactions/updateTransactionModal";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -26,6 +27,9 @@ export default function TransactionsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [archiveTarget, setArchiveTarget] = useState<Transaction | null>(null);
+  const [archiving, setArchiving] = useState(false);
 
   async function loadTransactions() {
     setLoading(true);
@@ -70,17 +74,27 @@ export default function TransactionsPage() {
     setTransactions((prev) => prev.map((t) => (t._id === updated._id ? updated : t)));
   }
 
-  async function handleArchive(id: string) {
-    const ok = window.confirm("Archive this transaction? This cannot be undone.");
-    if (!ok) return;
-    setTransactions((prev) => prev.filter((tx) => tx._id !== id));
+  function requestArchive(tx: Transaction) {
+    setArchiveTarget(tx);
+    setArchiveOpen(true);
+  }
+
+  async function confirmArchive() {
+    if (!archiveTarget) return;
+    const target = archiveTarget;
+    setArchiving(true);
+    setArchiveOpen(false);
+    setArchiveTarget(null);
+    setTransactions((prev) => prev.filter((tx) => tx._id !== target._id));
     try {
-      await archiveTransaction(id);
+      await archiveTransaction(target._id);
     } catch (e: any) {
       await loadTransactions();
-      alert(e?.message || "Failed to archive transaction");
+      setError(e?.message || "Failed to archive transaction");
+    } finally {
+      setArchiving(false);
     }
-    }
+  }
 
 
   return (
@@ -185,7 +199,7 @@ export default function TransactionsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleArchive(t._id)}
+                      onClick={() => requestArchive(t)}
                     >
                       Archive
                     </Button>
@@ -210,6 +224,19 @@ export default function TransactionsPage() {
     transaction={selectedTx}
     accounts={accounts}
     onUpdated={handleUpdated}
+  />
+  <ConfirmDialog
+    open={archiveOpen}
+    title="Archive transaction?"
+    description="Archive this transaction? This cannot be undone."
+    confirmText="Archive"
+    onConfirm={confirmArchive}
+    onCancel={() => {
+      if (archiving) return;
+      setArchiveOpen(false);
+      setArchiveTarget(null);
+    }}
+    loading={archiving}
   />
 </main>
   );
