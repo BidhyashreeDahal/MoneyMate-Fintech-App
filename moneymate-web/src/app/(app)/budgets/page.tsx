@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { listBudgets, type Budget } from "@/lib/budgets";
+import {
+  listBudgets,
+  deleteBudget,
+  type Budget,
+} from "@/lib/budgets";
 import { Button } from "@/components/ui/button";
 import CreateBudgetModal from "@/components/budgets/createBudgetModal";
 import EditBudgetModal from "@/components/budgets/EditBudgetModal";
@@ -10,6 +14,10 @@ export default function BudgetsPage() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editBudget, setEditBudget] =
+    useState<Budget | null>(null);
 
   async function loadBudgets() {
     setLoading(true);
@@ -29,7 +37,6 @@ export default function BudgetsPage() {
     loadBudgets();
   }, []);
 
-  // Sort budgets by highest percent used (most urgent first)
   const sortedBudgets = useMemo(() => {
     return [...budgets].sort(
       (a, b) => b.percentUsed - a.percentUsed
@@ -37,48 +44,96 @@ export default function BudgetsPage() {
   }, [budgets]);
 
   return (
-    <main>
-      <div className="flex items-start justify-between">
+    <main className="space-y-6">
+      <div className="flex items-center justify-between border-b pb-4">
         <div>
-          <h1 className="text-2xl font-bold">Budgets</h1>
-          <p className="opacity-70 mt-1">
-            Monitor spending by category.
+          <h1 className="text-3xl font-semibold">
+            Budgets
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Track spending by category and control financial limits.
           </p>
         </div>
 
-        <Button>Create Budget</Button>
+        <Button
+          onClick={() => setCreateOpen(true)}
+        >
+          + Create Budget
+        </Button>
       </div>
 
       {loading && (
-        <p className="mt-4">Loading budgets...</p>
+        <p className="text-sm text-gray-500">
+          Loading budgets...
+        </p>
       )}
 
-      {error && !loading && (
-        <p className="mt-4 text-red-600">
+      {error && (
+        <p className="text-red-600 text-sm">
           {error}
         </p>
       )}
 
-      {!loading && !error && sortedBudgets.length === 0 && (
-        <p className="mt-4 opacity-70">
-          No budgets created yet.
-        </p>
-      )}
+      {!loading &&
+        !error &&
+        sortedBudgets.length === 0 && (
+          <p className="text-sm text-gray-500">
+            No budgets created yet.
+          </p>
+        )}
 
-      {!loading && !error && sortedBudgets.length > 0 && (
-        <div className="mt-6 space-y-4">
-          {sortedBudgets.map((budget) => (
-            <BudgetCard
-              key={budget._id}
-              budget={budget}
-            />
-          ))}
-        </div>
+      {!loading &&
+        !error &&
+        sortedBudgets.length > 0 && (
+          <div className="grid gap-4">
+            {sortedBudgets.map((budget) => (
+              <BudgetCard
+                key={budget._id}
+                budget={budget}
+                onArchive={async () => {
+                  await deleteBudget(
+                    budget._id
+                  );
+                  loadBudgets();
+                }}
+                onEdit={() =>
+                  setEditBudget(budget)
+                }
+              />
+            ))}
+          </div>
+        )}
+
+      <CreateBudgetModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={loadBudgets}
+      />
+
+      {editBudget && (
+        <EditBudgetModal
+          budget={editBudget}
+          onClose={() =>
+            setEditBudget(null)
+          }
+          onUpdated={() => {
+            setEditBudget(null);
+            loadBudgets();
+          }}
+        />
       )}
     </main>
   );
 }
-function BudgetCard({ budget }: { budget: Budget }) {
+function BudgetCard({
+  budget,
+  onArchive,
+  onEdit,
+}: {
+  budget: Budget;
+  onArchive: () => void;
+  onEdit: () => void;
+}) {
   const progressWidth = Math.min(
     budget.percentUsed,
     100
@@ -91,14 +146,14 @@ function BudgetCard({ budget }: { budget: Budget }) {
     : "bg-blue-500";
 
   return (
-    <div className="rounded-xl border bg-white p-5">
+    <div className="rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md transition">
       <div className="flex justify-between items-start">
         <div>
           <h2 className="text-lg font-semibold">
             {budget.category}
           </h2>
 
-          <p className="text-sm opacity-70">
+          <p className="text-xs text-gray-500 mt-1">
             {new Date(
               budget.startDate
             ).toLocaleDateString()}{" "}
@@ -110,15 +165,15 @@ function BudgetCard({ budget }: { budget: Budget }) {
         </div>
 
         <div className="text-right">
-          <div className="font-semibold">
+          <div className="text-sm font-medium">
             {budget.spendAmount.toLocaleString(
               undefined,
               {
                 style: "currency",
                 currency: "CAD",
               }
-            )}
-            {" / "}
+            )}{" "}
+            /{" "}
             {budget.limitAmount.toLocaleString(
               undefined,
               {
@@ -128,21 +183,23 @@ function BudgetCard({ budget }: { budget: Budget }) {
             )}
           </div>
 
-          <div className="text-sm opacity-70">
+          <div className="text-xs text-gray-500">
             {budget.percentUsed}% used
           </div>
         </div>
       </div>
 
-      <div className="mt-4 w-full bg-gray-200 rounded h-2">
+      <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
         <div
-          className={`h-2 rounded ${barColor}`}
-          style={{ width: `${progressWidth}%` }}
+          className={`h-2 rounded-full ${barColor}`}
+          style={{
+            width: `${progressWidth}%`,
+          }}
         />
       </div>
 
-      <div className="mt-3 flex justify-between text-sm">
-        <span>
+      <div className="mt-4 flex items-center justify-between">
+        <span className="text-sm text-gray-600">
           Remaining:{" "}
           {budget.remaining.toLocaleString(
             undefined,
@@ -153,20 +210,37 @@ function BudgetCard({ budget }: { budget: Budget }) {
           )}
         </span>
 
-        {budget.isOverBudget && (
-          <span className="text-red-600 font-medium">
-            Over budget
-          </span>
-        )}
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onEdit}
+          >
+            Edit
+          </Button>
 
-        {!budget.isOverBudget &&
-          budget.alertTriggered && (
-            <span className="text-yellow-600 font-medium">
-              Approaching limit
-            </span>
-          )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onArchive}
+          >
+            Archive
+          </Button>
+        </div>
       </div>
+
+      {budget.isOverBudget && (
+        <div className="mt-3 text-sm text-red-600 font-medium">
+          Over budget
+        </div>
+      )}
+
+      {!budget.isOverBudget &&
+        budget.alertTriggered && (
+          <div className="mt-3 text-sm text-yellow-600 font-medium">
+            Approaching limit
+          </div>
+        )}
     </div>
   );
 }
-
