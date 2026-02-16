@@ -1,9 +1,5 @@
 import OpenAI from "openai";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 function safeParseJson(text) {
   try {
     return JSON.parse(text);
@@ -14,6 +10,16 @@ function safeParseJson(text) {
 
 export const parseReceipt = async (req, res) => {
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({
+        message: "Missing OPENAI_API_KEY in server environment",
+      });
+    }
+
+    const client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
     if (!req.file) {
       return res.status(400).json({
         message: "No receipt file uploaded",

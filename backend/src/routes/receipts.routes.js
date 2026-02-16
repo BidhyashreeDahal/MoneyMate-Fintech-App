@@ -9,3 +9,4 @@ const upload = multer();
 router.use(authMiddleware);
 router.post("/parse", upload.single("receipt"), parseReceipt);
 
+export default router;
