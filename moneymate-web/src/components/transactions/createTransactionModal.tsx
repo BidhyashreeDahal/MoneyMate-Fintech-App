@@ -13,6 +13,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createTransaction } from "@/lib/transactions";
 import { listAccounts, type Account } from "@/lib/accounts";
+import { parseReceiptAI } from "@/lib/receipts";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -110,6 +111,8 @@ export default function CreateTransactionModal({ open, onClose, onCreated }: Pro
   const [category, setCategory] = useState<string>(DEFAULT_CATEGORIES[0]);
   const [date, setDate] = useState(toISODateInputValue(new Date()));
   const [notes, setDescription] = useState("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [parsingReceipt, setParsingReceipt] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -140,6 +143,7 @@ export default function CreateTransactionModal({ open, onClose, onCreated }: Pro
     setCategory(DEFAULT_CATEGORIES[0]);
     setDate(toISODateInputValue(new Date()));
     setDescription("");
+    setReceiptFile(null);
     setError(null);
   }
 
@@ -179,6 +183,25 @@ export default function CreateTransactionModal({ open, onClose, onCreated }: Pro
       setError(e?.message || "Failed to create transaction.");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleParseReceipt() {
+    if (!receiptFile) return;
+    setError(null);
+    setParsingReceipt(true);
+    try {
+      const data = await parseReceiptAI(receiptFile);
+      if (data?.total != null) setAmount(String(data.total));
+      if (data?.date) setDate(data.date);
+      if (data?.category) setCategory(data.category);
+      if (data?.merchant && !notes.trim()) {
+        setDescription(data.merchant);
+      }
+    } catch (e: any) {
+      setError(e?.message || "Failed to parse receipt.");
+    } finally {
+      setParsingReceipt(false);
     }
   }
 
@@ -300,6 +323,33 @@ export default function CreateTransactionModal({ open, onClose, onCreated }: Pro
                 onChange={(e) => setDate(e.target.value)}
               />
             </div>
+          </div>
+
+          {/* Receipt AI */}
+          <div className="grid gap-2">
+            <Label className="text-sm" htmlFor="receipt">
+              Receipt (optional)
+            </Label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Input
+                id="receipt"
+                className="bg-white text-black border border-gray-300"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!receiptFile || parsingReceipt}
+                onClick={handleParseReceipt}
+              >
+                {parsingReceipt ? "Parsing..." : "Auto-fill from receipt"}
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500">
+              Use AI to extract amount, date, and category.
+            </p>
           </div>
 
           {/* notes */}
