@@ -15,7 +15,7 @@ export default function AppShell ({children} : {children: React.ReactNode}) {
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50 text-gray-900">
             <div className ="flex min-h-screen">
                 {/*Sidebar */}
-                <aside className="w-64 border-r border-emerald-100 bg-white/90 backdrop-blur">
+                <aside className="w-64 border-r border-emerald-100 bg-white/90 backdrop-blur sticky top-0 h-screen">
                     <Sidebar />
                 </aside>
                 {/* Main content area */}
