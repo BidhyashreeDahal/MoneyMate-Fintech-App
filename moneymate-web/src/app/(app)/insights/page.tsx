@@ -122,9 +122,8 @@ export default function InsightsPage() {
     <main className="max-w-6xl mx-auto space-y-10 p-6">
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-semibold tracking-tight">
-          Financial Insights
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Financial Insights </h1>
+
         <p className="text-gray-500 mt-2 text-sm">
           A visual overview of your income, expenses, and spending behavior.
         </p>
@@ -264,16 +263,17 @@ function SummaryCard({
 }) {
   const accentStyles =
     accent === "green"
-      ? "text-green-600"
-      : "text-red-600";
+      ? "text-emerald-600"
+      : "text-rose-600";
 
   return (
-    <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition">
-      <div className="text-sm text-gray-500">
+    <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+      <div className="text-xs uppercase tracking-wide text-back-400">
         {label}
       </div>
+
       <div
-        className={`text-3xl font-semibold mt-3 tracking-tight ${accentStyles}`}
+        className={`text-xl font-semibold mt-2 ${accentStyles}`}
       >
         {formatCurrency(value)}
       </div>
