@@ -131,6 +131,67 @@ export const getBudgets = async (req, res) => {
 };
 
 /**
+ * Update Budget
+ */
+export const updateBudget = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const budgetId = req.params.id;
+    const {
+      category,
+      limitAmount,
+      startDate,
+      endDate,
+      alertThreshold,
+    } = req.body;
+
+    if (limitAmount !== undefined && limitAmount <= 0) {
+      return res.status(400).json({
+        message: "Budget limit must be greater than 0",
+      });
+    }
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (start > end) {
+        return res.status(400).json({
+          message: "Start date must be before end date",
+        });
+      }
+    }
+
+    const budget = await Budget.findOneAndUpdate(
+      { _id: budgetId, userId },
+      {
+        ...(category !== undefined ? { category } : {}),
+        ...(limitAmount !== undefined ? { limitAmount } : {}),
+        ...(startDate !== undefined ? { startDate } : {}),
+        ...(endDate !== undefined ? { endDate } : {}),
+        ...(alertThreshold !== undefined ? { alertThreshold } : {}),
+      },
+      { new: true }
+    );
+
+    if (!budget) {
+      return res.status(404).json({
+        message: "Budget not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Budget updated successfully",
+      budget,
+    });
+  } catch (error) {
+    console.error("Update Budget Error:", error);
+    res.status(500).json({
+      message: "Server error updating budget",
+    });
+  }
+};
+
+/**
  * Archive Budget (Soft Delete)
  */
 export const deleteBudget = async (req, res) => {
