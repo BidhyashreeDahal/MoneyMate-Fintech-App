@@ -98,25 +98,31 @@ export default function TransactionsPage() {
 
 
   return (
-          <main>
-            <div className="flex items-start justify-between gap-4">
+          <main className="space-y-6">
+            <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
+              <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Transactions</h1>
-          <p className="opacity-75 mt-1">
+          <h1 className="text-2xl font-semibold">Transactions</h1>
+          <p className="text-sm text-gray-500 mt-1">
             Your latest income and expenses across accounts.
           </p>
         </div>
 
-        <Button className="font-bold" onClick={() => setCreateOpen(true)}>
+        <Button className="font-semibold" onClick={() => setCreateOpen(true)}>
           + Add transaction
         </Button>
       </div>
+      </div>
 
 
-      {loading && <p className="mt-4">Loading transactions...</p>}
+      {loading && (
+        <div className="rounded-2xl border border-emerald-100 bg-white p-6 text-sm text-gray-500">
+          Loading transactions...
+        </div>
+      )}
 
       {!loading && error && (
-        <div className="mt-4">
+        <div className="rounded-2xl border border-red-200 bg-white p-6">
           <p className="text-red-600">{error}</p>
           <Button onClick={loadTransactions} variant="outline" className="mt-2">
             Retry
@@ -125,15 +131,25 @@ export default function TransactionsPage() {
       )}
 
       {!loading && !error && transactions.length === 0 && (
-        <p className="mt-4 opacity-75">
-          No transactions yet. Add your first one.
-        </p>
+        <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-10 text-center">
+          <div className="text-sm font-semibold text-gray-900">
+            No transactions yet
+          </div>
+          <div className="text-sm text-gray-500 mt-2">
+            Add your first transaction to start tracking.
+          </div>
+          <div className="mt-4">
+            <Button onClick={() => setCreateOpen(true)}>
+              Add transaction
+            </Button>
+          </div>
+        </div>
       )}
 
       {!loading && !error && transactions.length > 0 && (
-        <div className="mt-3 rounded-xl border bg-white overflow-hidden">
+        <div className="rounded-2xl border border-emerald-100 bg-white overflow-hidden">
           {/* Table header band */}
-          <div className="px-4 py-3 border-b bg-gray-50">
+          <div className="px-4 py-3 border-b bg-emerald-50/60">
             <div className="font-semibold">Statement</div>
             <div className="text-xs opacity-70">
               Showing {transactions.length} transactions
@@ -141,7 +157,7 @@ export default function TransactionsPage() {
           </div>
 
           {/* Column headers */}
-          <div className="grid grid-cols-12 gap-3 px-4 py-2 text-xs font-semibold uppercase tracking-wide opacity-70 border-b">
+          <div className="grid grid-cols-12 gap-3 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
             <div className="col-span-2">Date</div>
             <div className="col-span-4">notes</div>
             <div className="col-span-2">Category</div>
@@ -164,23 +180,23 @@ export default function TransactionsPage() {
 
           return (
             <div key={t._id}
-             className="grid grid-cols-12 gap-3 px-4 py-3 border-b last:border-b-0 items-center hover:bg-gray-50">
-                <div className="col-span-2 text-sm opacity-75">
+             className="grid grid-cols-12 gap-3 px-4 py-3 border-b last:border-b-0 items-center hover:bg-emerald-50/40">
+                <div className="col-span-2 text-sm text-gray-500">
                   {new Date(t.date).toLocaleDateString()}
                 </div>
 
-                <div className="col-span-4 text-sm truncate">
+                <div className="col-span-4 text-sm text-gray-900 truncate">
                   {displayDesc}
                 </div>
 
-                <div className="col-span-2 text-sm">{t.category}</div>
+                <div className="col-span-2 text-sm text-gray-700">{t.category}</div>
 
-                <div className="col-span-2 text-sm opacity-80 truncate">
+                <div className="col-span-2 text-sm text-gray-500 truncate">
                   {accountName}
                 </div>
 
                 <div className="col-span-2 text-right">
-                  <div className={`font-semibold ${isExpense ? "text-red-600" : "text-green-600"}`}>
+                  <div className={`font-semibold ${isExpense ? "text-red-600" : "text-emerald-600"}`}>
                     {isExpense ? "-" : "+"}
                     {t.amount.toLocaleString(undefined, {
                       style: "currency",

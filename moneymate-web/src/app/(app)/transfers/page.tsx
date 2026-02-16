@@ -72,24 +72,30 @@ export default function TransfersPage() {
   }
 
   return (
-    <main>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Transfers</h1>
-          <p className="opacity-75 mt-1">
-            Move money between your accounts.
-          </p>
-        </div>
+    <main className="space-y-6">
+      <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold">Transfers</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Move money between your accounts.
+            </p>
+          </div>
 
-        <Button onClick={() => setCreateOpen(true)}>
-          + New transfer
-        </Button>
+          <Button onClick={() => setCreateOpen(true)}>
+            + New transfer
+          </Button>
+        </div>
       </div>
 
-      {loading && <p className="mt-4">Loading transfers...</p>}
+      {loading && (
+        <div className="rounded-2xl border border-emerald-100 bg-white p-6 text-sm text-gray-500">
+          Loading transfers...
+        </div>
+      )}
 
       {!loading && error && (
-        <div className="mt-4">
+        <div className="rounded-2xl border border-red-200 bg-white p-6">
           <p className="text-red-600">{error}</p>
           <Button onClick={loadTransfers} variant="outline" className="mt-2">
             Retry
@@ -98,19 +104,31 @@ export default function TransfersPage() {
       )}
 
       {!loading && !error && sortedTransfers.length === 0 && (
-        <p className="mt-4 opacity-75">No transfers yet.</p>
+        <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-10 text-center">
+          <div className="text-sm font-semibold text-gray-900">
+            No transfers yet
+          </div>
+          <div className="text-sm text-gray-500 mt-2">
+            Create a transfer to move funds between accounts.
+          </div>
+          <div className="mt-4">
+            <Button onClick={() => setCreateOpen(true)}>
+              New transfer
+            </Button>
+          </div>
+        </div>
       )}
 
       {!loading && !error && sortedTransfers.length > 0 && (
-        <div className="mt-4 rounded-xl border bg-white overflow-hidden">
-          <div className="px-4 py-3 border-b bg-gray-50">
+        <div className="rounded-2xl border border-emerald-100 bg-white overflow-hidden">
+          <div className="px-4 py-3 border-b bg-emerald-50/60">
             <div className="font-semibold">History</div>
             <div className="text-xs opacity-70">
               Showing {sortedTransfers.length} transfers
             </div>
           </div>
 
-          <div className="grid grid-cols-12 gap-3 px-4 py-2 text-xs font-semibold uppercase tracking-wide opacity-70 border-b">
+          <div className="grid grid-cols-12 gap-3 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
             <div className="col-span-2">Date</div>
             <div className="col-span-3">From</div>
             <div className="col-span-3">To</div>
@@ -121,17 +139,17 @@ export default function TransfersPage() {
           {sortedTransfers.map((t) => (
             <div
               key={t._id}
-              className="grid grid-cols-12 gap-3 px-4 py-3 border-b last:border-b-0 items-center hover:bg-gray-50"
+              className="grid grid-cols-12 gap-3 px-4 py-3 border-b last:border-b-0 items-center hover:bg-emerald-50/40"
             >
-              <div className="col-span-2 text-sm opacity-75">
+              <div className="col-span-2 text-sm text-gray-500">
                 {new Date(t.date).toLocaleDateString()}
               </div>
 
-              <div className="col-span-3 text-sm truncate">
+              <div className="col-span-3 text-sm text-gray-900 truncate">
                 {accountNameById[getAccountId(t.fromAccountId)] || "—"}
               </div>
 
-              <div className="col-span-3 text-sm truncate">
+              <div className="col-span-3 text-sm text-gray-900 truncate">
                 {accountNameById[getAccountId(t.toAccountId)] || "—"}
               </div>
 

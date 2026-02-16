@@ -77,24 +77,33 @@ async function confirmArchive() {
     }, []);
     
     return (
-    <main>
-      <h1 className="text-2xl font-bold">Accounts</h1>
+    <main className="space-y-6">
+      <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Accounts</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage your accounts and track balances at a glance.
+            </p>
+          </div>
 
-        <div className="mt-3 flex justify-between items-center">
-            <p className="opacity-75">Your accounts</p>
-
-            <Button
-                onClick={() => setModalOpen(true)}
-                className="font-bold"
-            >
-                + Add account
-            </Button>
+          <Button
+            onClick={() => setModalOpen(true)}
+            className="font-semibold"
+          >
+            + Add account
+          </Button>
         </div>
+      </div>
 
-      {loading && <p className="mt-3">Loading accounts...</p>}
+      {loading && (
+        <div className="rounded-2xl border border-emerald-100 bg-white p-6 text-sm text-gray-500">
+          Loading accounts...
+        </div>
+      )}
 
       {!loading && error && (
-        <div className="mt-3">
+        <div className="rounded-2xl border border-red-200 bg-white p-6">
           <p className="text-red-600">{error}</p>
           <Button onClick={loadAccounts} variant="outline" className="mt-2">
             Retry
@@ -103,11 +112,23 @@ async function confirmArchive() {
       )}
 
       {!loading && !error && accounts.length === 0 && (
-        <p className="mt-3">No accounts yet. Create your first account.</p>
+        <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-10 text-center">
+          <div className="text-sm font-semibold text-gray-900">
+            No accounts yet
+          </div>
+          <div className="text-sm text-gray-500 mt-2">
+            Create your first account to start tracking balances.
+          </div>
+          <div className="mt-4">
+            <Button onClick={() => setModalOpen(true)}>
+              Create an account
+            </Button>
+          </div>
+        </div>
       )}
 
       {!loading && !error && accounts.length > 0 && (
-        <div className="mt-4 grid gap-3">
+        <div className="grid gap-4">
           {accounts.map((a) => {
             const IconComponent = a.icon ? iconMap[a.icon] : iconMap.wallet;
             const Icon = IconComponent || iconMap.wallet;
@@ -119,8 +140,7 @@ async function confirmArchive() {
             return (
               <div
                 key={a._id}
-                className="border-2 rounded-xl p-4 bg-white"
-                style={{ borderColor: borderColor }}
+                className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm hover:shadow-md transition"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3 flex-1">
@@ -134,8 +154,8 @@ async function confirmArchive() {
                       <Icon size={20} />
                     </div>
                     <div>
-                      <div className="font-semibold text-base">{a.name}</div>
-                      <div className="text-xs opacity-75 mt-0.5">
+                      <div className="font-semibold text-base text-gray-900">{a.name}</div>
+                      <div className="text-xs text-gray-500 mt-0.5">
                         {a.type.toUpperCase()} • {a.currency}
                       </div>
                     </div>
@@ -157,14 +177,14 @@ async function confirmArchive() {
                     >
                         Archive
                     </Button>
-                    <div className="font-bold text-lg">
+                    <div className="font-semibold text-lg text-gray-900">
                       {a.balance.toLocaleString(undefined, {
                         style: "currency",
                         currency: a.currency || "CAD",
                       })}
                     </div>
                     {a.goalAmount && a.goalAmount > 0 && (
-                      <div className="text-xs opacity-70 mt-1">
+                      <div className="text-xs text-gray-500 mt-1">
                         Goal: {a.goalAmount.toLocaleString(undefined, {
                           style: "currency",
                           currency: a.currency || "CAD",
@@ -176,11 +196,11 @@ async function confirmArchive() {
 
                 {goalProgress !== null && (
                   <div className="mt-3">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="opacity-70">Progress</span>
+                    <div className="flex justify-between text-xs mb-1 text-gray-500">
+                      <span>Progress</span>
                       <span className="font-semibold">{goalProgress.toFixed(0)}%</span>
                     </div>
-                    <div className="w-full h-1.5 bg-gray-200 rounded-sm overflow-hidden">
+                    <div className="w-full h-1.5 bg-emerald-100/60 rounded-sm overflow-hidden">
                       <div
                         className="h-full transition-all duration-300 ease-in-out"
                         style={{
