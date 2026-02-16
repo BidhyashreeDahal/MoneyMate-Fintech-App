@@ -35,7 +35,6 @@ export async function listAccounts(): Promise<Account[]> {
 }
 
 export async function createAccount(input: CreateAccountInput): Promise<Account> {
-    console.log("CREATE ACCOUNT INPUT (lib/accounts.ts):", input);
   const data = await apiFetch<any>("/api/accounts", {
     method: "POST",
     body: JSON.stringify(input),

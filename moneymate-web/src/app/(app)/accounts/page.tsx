@@ -8,7 +8,7 @@
 import { useEffect, useState } from "react";
 import CreateAccountModal from "@/components/accounts/CreateAccountModal";
 import { listAccounts, type Account, archiveAccount } from "@/lib/accounts";
-import { iconMap } from "@/lib/iconMap.";
+import { iconMap } from "@/lib/iconMap";
 import { Button } from "@/components/ui/button";
 import EditAccountModal from "@/components/accounts/UpdateAccountModal";
 import ConfirmDialog from "@/components/ui/confirm-dialog";

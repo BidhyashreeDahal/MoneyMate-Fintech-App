@@ -11,7 +11,7 @@
 
 import { useState } from "react";
 import { createAccount } from "@/lib/accounts";
-import { iconMap } from "@/lib/iconMap.";
+import { iconMap } from "@/lib/iconMap";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

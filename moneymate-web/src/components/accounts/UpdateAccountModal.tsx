@@ -9,7 +9,7 @@
 import { useEffect, useState } from "react";
 import type { Account } from "@/lib/accounts";
 import { updateAccount } from "@/lib/accounts";
-import { iconMap } from "@/lib/iconMap.";
+import { iconMap } from "@/lib/iconMap";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
