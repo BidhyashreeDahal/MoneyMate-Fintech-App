@@ -1,8 +1,10 @@
 // Handles authentication logic: user signup, login, and logout.
 // Uses the User model for database operations and JWT for issuing tokens.
 
-import User from '../models/user.js';
-import jwt from 'jsonwebtoken';
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import { sendPasswordResetEmail } from "../services/email.service.js";
 
 // Helper: generate JWT token for a user
 const generateToken = (userId) => {
@@ -139,5 +141,74 @@ export const me = async (req, res) => {
   } catch (error) {
     console.error("Me error:", error);
     return res.status(500).json({ message: "Server error fetching session" });
+  }
+};
+
+// POST /api/auth/forgot-password
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    console.log("[password-reset] request for email:", email, "user_found:", !!user);
+
+    // Always respond the same to avoid leaking which emails exist
+    const okResponse = () =>
+      res.status(200).json({
+        message: "If that email exists, you'll receive a reset link shortly.",
+      });
+
+    if (!user) return okResponse();
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+    user.passwordResetTokenHash = tokenHash;
+    user.passwordResetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    const resetUrlBase =
+      process.env.PASSWORD_RESET_URL_BASE ||
+      `${process.env.CLIENT_ORIGIN || "http://localhost:3000"}/reset-password`;
+    const resetUrl = `${resetUrlBase}?token=${encodeURIComponent(rawToken)}`;
+
+    try {
+      await sendPasswordResetEmail({ to: user.email, resetUrl });
+    } catch (err) {
+      console.error("[password-reset] email send failed:", err);
+      // Still return ok response (avoid user enumeration), but logs will show the cause.
+    }
+    return okResponse();
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// POST /api/auth/reset-password
+export const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+
+  try {
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      passwordResetTokenHash: tokenHash,
+      passwordResetTokenExpiresAt: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired reset token." });
+    }
+
+    user.password = password; // will be hashed by pre-save hook
+    user.passwordResetTokenHash = undefined;
+    user.passwordResetTokenExpiresAt = undefined;
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successful. Please log in." });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
