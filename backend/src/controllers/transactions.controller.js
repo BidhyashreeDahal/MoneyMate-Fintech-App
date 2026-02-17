@@ -7,6 +7,8 @@
 import Transaction from "../models/Transaction.js";
 import Account from "../models/Account.js";
 import mongoose from "mongoose";
+import { isCloudinaryReceiptsEnabled, uploadReceiptToCloudinary } from "../services/cloudinary-receipts.service.js";
+import { getSignedReceiptUrlFromS3, isS3ReceiptsEnabled, uploadReceiptToS3 } from "../services/s3-receipts.service.js";
 
 // ===============================================================
 // Create a new transaction (income, expense, transfer)
@@ -260,19 +262,44 @@ export const attachReceiptToTransaction = async (req, res) => {
       return res.status(400).json({ message: "No receipt file uploaded." });
     }
 
-    // If uploads are disabled (e.g., production serverless), multer uses memoryStorage (no filename).
-    if (!req.file.filename) {
+    let receiptUrl;
+    let receiptKey;
+
+    // Prefer Cloudinary when configured (works on Render/Vercel, no local disk).
+    if (isCloudinaryReceiptsEnabled() && req.file.buffer) {
+      const uploaded = await uploadReceiptToCloudinary({
+        buffer: req.file.buffer,
+        userId,
+        transactionId,
+      });
+      receiptUrl = uploaded.secureUrl;
+      receiptKey = `cloudinary:${uploaded.publicId}`;
+    }
+    // Prefer S3 when configured. Multer memoryStorage provides `buffer`.
+    else if (isS3ReceiptsEnabled() && req.file.buffer) {
+      const uploaded = await uploadReceiptToS3({
+        buffer: req.file.buffer,
+        mimetype: req.file.mimetype,
+        originalname: req.file.originalname,
+        userId,
+        transactionId,
+      });
+      receiptKey = uploaded.key;
+      // Stable URL the frontend can use; backend will redirect to a signed S3 URL.
+      receiptUrl = `/api/transactions/${transactionId}/receipt`;
+    } else if (req.file.filename) {
+      // Local disk storage (dev/serverful deployments)
+      receiptUrl = `/uploads/receipts/${req.file.filename}`;
+    } else {
       return res.status(503).json({
         message:
-          "Receipt uploads are disabled in this environment. Set ENABLE_UPLOADS=true on a server with writable storage.",
+          "Receipt uploads are disabled in this environment. Configure Cloudinary or S3, or enable local uploads on a server with writable storage.",
       });
     }
 
-    const receiptUrl = `/uploads/receipts/${req.file.filename}`;
-
     const tx = await Transaction.findOneAndUpdate(
       { _id: transactionId, userId, archived: false },
-      { receiptUrl },
+      { receiptUrl, ...(receiptKey ? { receiptKey } : {}) },
       { new: true }
     );
 
@@ -287,6 +314,40 @@ export const attachReceiptToTransaction = async (req, res) => {
   } catch (error) {
     console.error("Attach Receipt Error:", error);
     return res.status(500).json({ message: "Server error attaching receipt." });
+  }
+};
+
+// GET /api/transactions/:id/receipt
+// For S3 receipts, redirects to a short-lived signed URL.
+export const getReceiptForTransaction = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const transactionId = req.params.id;
+
+    const tx = await Transaction.findOne({ _id: transactionId, userId, archived: false }).select(
+      "_id receiptUrl receiptKey"
+    );
+    if (!tx) return res.status(404).json({ message: "Transaction not found." });
+
+    // Cloudinary (or any absolute URL): redirect directly
+    if (tx.receiptUrl && /^https?:\/\//i.test(tx.receiptUrl)) {
+      return res.redirect(tx.receiptUrl);
+    }
+
+    if (tx.receiptKey && isS3ReceiptsEnabled()) {
+      const signed = await getSignedReceiptUrlFromS3({ key: tx.receiptKey, expiresSeconds: 300 });
+      return res.redirect(signed);
+    }
+
+    // Local receipts: redirect to the static uploads route.
+    if (tx.receiptUrl && tx.receiptUrl.startsWith("/uploads/")) {
+      return res.redirect(tx.receiptUrl);
+    }
+
+    return res.status(404).json({ message: "No receipt available for this transaction." });
+  } catch (error) {
+    console.error("Get Receipt Error:", error);
+    return res.status(500).json({ message: "Server error fetching receipt." });
   }
 };
 

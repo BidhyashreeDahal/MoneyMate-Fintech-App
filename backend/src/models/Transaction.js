@@ -111,6 +111,11 @@ const transactionSchema = new mongoose.Schema(
       type: String,
     },
 
+    // Receipt storage key (e.g. S3 object key). `receiptUrl` can point to an API route.
+    receiptKey: {
+      type: String,
+    },
+
     // AI suggested category
     aiSuggestedCategory: {
       type: String,

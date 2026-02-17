@@ -308,13 +308,17 @@ export default function UpdateTransactionModal({
             <Input
               id="receipt"
               type="file"
-              accept="image/*"
+              accept="image/*,application/pdf"
               onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
             />
             {transaction?.receiptUrl && (
               <a
                 className="text-xs text-blue-600 underline"
-                href={`${API_BASE}${transaction.receiptUrl}`}
+                href={
+                  /^https?:\/\//i.test(transaction.receiptUrl)
+                    ? transaction.receiptUrl
+                    : `${API_BASE || ""}${transaction.receiptUrl}`
+                }
                 target="_blank"
                 rel="noreferrer"
               >

@@ -24,6 +24,11 @@ if (uploadsEnabled) {
   }
 }
 
+const cloudinaryEnabled =
+  !!process.env.CLOUDINARY_CLOUD_NAME &&
+  !!process.env.CLOUDINARY_API_KEY &&
+  !!process.env.CLOUDINARY_API_SECRET;
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
@@ -42,7 +47,8 @@ const fileFilter = (req, file, cb) => {
 };
 
 export const uploadReceipt = multer({
-  storage: diskReady ? storage : multer.memoryStorage(),
+  // If Cloudinary is configured, always keep uploads in memory (buffer) so we can stream to Cloudinary.
+  storage: cloudinaryEnabled ? multer.memoryStorage() : diskReady ? storage : multer.memoryStorage(),
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
