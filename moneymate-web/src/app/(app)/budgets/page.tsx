@@ -10,11 +10,14 @@ import { Button } from "@/components/ui/button";
 import CreateBudgetModal from "@/components/budgets/createBudgetModal";
 import EditBudgetModal from "@/components/budgets/EditBudgetModal";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
+import EmptyState from "@/components/ui/empty-state";
+import { useToast } from "@/providers/ToastProvider";
 
 export default function BudgetsPage() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editBudget, setEditBudget] =
@@ -146,19 +149,12 @@ export default function BudgetsPage() {
       {!loading &&
         !error &&
         sortedBudgets.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-10 text-center">
-            <div className="text-sm font-semibold text-gray-900">
-              No budgets created yet
-            </div>
-            <div className="text-sm text-gray-500 mt-2">
-              Start by adding a budget to keep spending on track.
-            </div>
-            <div className="mt-4">
-              <Button onClick={() => setCreateOpen(true)}>
-                Create your first budget
-              </Button>
-            </div>
-          </div>
+          <EmptyState
+            title="No budgets created yet"
+            description="Budgets help you set category limits and track spending progress."
+            actionLabel="Create budget"
+            onActionClick={() => setCreateOpen(true)}
+          />
         )}
 
       {!loading &&
@@ -184,7 +180,14 @@ export default function BudgetsPage() {
       <CreateBudgetModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={loadBudgets}
+        onCreated={async () => {
+          await loadBudgets();
+          toast({
+            title: "Budget created",
+            description: "Your budget has been saved.",
+            variant: "success",
+          });
+        }}
       />
 
       {editBudget && (
@@ -213,6 +216,11 @@ export default function BudgetsPage() {
           try {
             await deleteBudget(target._id);
             loadBudgets();
+            toast({
+              title: "Budget archived",
+              description: `Archived budget for ${target.category}.`,
+              variant: "success",
+            });
           } catch (e: any) {
             setError(
               e?.message || "Failed to archive budget"

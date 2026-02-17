@@ -14,6 +14,7 @@ import { listAccounts } from "@/lib/accounts";
 import { listTransactions, type Transaction } from "@/lib/transactions";
 import { listBudgets, type Budget } from "@/lib/budgets";
 import { Button } from "@/components/ui/button";
+import EmptyState from "@/components/ui/empty-state";
 import {
   LineChart,
   Line,
@@ -195,7 +196,16 @@ export default function DashboardPage() {
         </div>
         {error && (
           <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">{error}</div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -329,9 +339,12 @@ export default function DashboardPage() {
             </Link>
           </div>
           {topBudgets.length === 0 ? (
-            <div className="text-sm text-gray-500">
-              No budgets yet. Create your first budget.
-            </div>
+            <EmptyState
+              title="No budgets yet"
+              description="Create a budget to track category limits and avoid overspending."
+              actionLabel="Create budget"
+              actionHref="/budgets"
+            />
           ) : (
             <div className="space-y-4">
               {topBudgets.map((budget) => {
@@ -378,9 +391,12 @@ export default function DashboardPage() {
             </span>
           </div>
           {accounts.length === 0 ? (
-            <div className="text-sm text-gray-500">
-              No accounts yet. Create one to begin tracking.
-            </div>
+            <EmptyState
+              title="No accounts yet"
+              description="Create an account to start tracking balances and transactions."
+              actionLabel="Create account"
+              actionHref="/accounts"
+            />
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {accounts.slice(0, 4).map((account) => (

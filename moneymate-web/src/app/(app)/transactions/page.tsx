@@ -17,12 +17,15 @@ import { Button } from "@/components/ui/button";
 import CreateTransactionModal from "@/components/transactions/createTransactionModal";
 import UpdateTransactionModal from "@/components/transactions/updateTransactionModal";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
+import EmptyState from "@/components/ui/empty-state";
+import { useToast } from "@/providers/ToastProvider";
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -88,6 +91,11 @@ export default function TransactionsPage() {
     setTransactions((prev) => prev.filter((tx) => tx._id !== target._id));
     try {
       await archiveTransaction(target._id);
+      toast({
+        title: "Transaction archived",
+        description: "The transaction was archived successfully.",
+        variant: "success",
+      });
     } catch (e: any) {
       await loadTransactions();
       setError(e?.message || "Failed to archive transaction");
@@ -131,19 +139,12 @@ export default function TransactionsPage() {
       )}
 
       {!loading && !error && transactions.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-10 text-center">
-          <div className="text-sm font-semibold text-gray-900">
-            No transactions yet
-          </div>
-          <div className="text-sm text-gray-500 mt-2">
-            Add your first transaction to start tracking.
-          </div>
-          <div className="mt-4">
-            <Button onClick={() => setCreateOpen(true)}>
-              Add transaction
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          title="No transactions yet"
+          description="Transactions track income and expenses across your accounts."
+          actionLabel="Add transaction"
+          onActionClick={() => setCreateOpen(true)}
+        />
       )}
 
       {!loading && !error && transactions.length > 0 && (
@@ -232,7 +233,14 @@ export default function TransactionsPage() {
   <CreateTransactionModal
     open={createOpen}
     onClose={() => setCreateOpen(false)}
-    onCreated={loadTransactions}
+    onCreated={async () => {
+      await loadTransactions();
+      toast({
+        title: "Transaction added",
+        description: "Your transaction has been saved.",
+        variant: "success",
+      });
+    }}
   />
   <UpdateTransactionModal
     open={editOpen}

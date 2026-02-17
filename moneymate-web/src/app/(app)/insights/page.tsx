@@ -10,6 +10,7 @@ import {
   type MonthlyTrend,
 } from "@/lib/insights";
 import { getMonthlyAiReport, type MonthlyAiReportResponse } from "@/lib/reports";
+import { Button } from "@/components/ui/button";
 
 import {
   LineChart,
@@ -130,18 +131,21 @@ export default function InsightsPage() {
   if (loading)
     return (
       <div className="max-w-6xl mx-auto p-6">
-        <p className="text-sm text-gray-500">
+        <div className="rounded-2xl border border-emerald-100 bg-white p-6 text-sm text-gray-500">
           Loading insights...
-        </p>
+        </div>
       </div>
     );
 
   if (error)
     return (
       <div className="max-w-6xl mx-auto p-6">
-        <p className="text-red-600">
-          {error}
-        </p>
+        <div className="rounded-2xl border border-red-200 bg-white p-6">
+          <p className="text-red-600">{error}</p>
+          <Button onClick={loadData} variant="outline" className="mt-2">
+            Retry
+          </Button>
+        </div>
       </div>
     );
 

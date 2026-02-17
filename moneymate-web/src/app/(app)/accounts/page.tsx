@@ -12,6 +12,8 @@ import { iconMap } from "@/lib/iconMap";
 import { Button } from "@/components/ui/button";
 import EditAccountModal from "@/components/accounts/UpdateAccountModal";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
+import EmptyState from "@/components/ui/empty-state";
+import { useToast } from "@/providers/ToastProvider";
 
 
 
@@ -25,6 +27,7 @@ export default function AccountsPage() {
     const [archiveOpen, setArchiveOpen] = useState(false);
     const [archiveTarget, setArchiveTarget] = useState<Account | null>(null);
     const [archiving, setArchiving] = useState(false);
+    const { toast } = useToast();
 
 function openEdit(account: Account) {
   setSelectedAccount(account);
@@ -35,6 +38,11 @@ function handleUpdated(updated: Account) {
   setAccounts((prev) =>
     prev.map((a) => (a._id === updated._id ? updated : a))
   );
+  toast({
+    title: "Account updated",
+    description: `Updated ${updated.name}.`,
+    variant: "success",
+  });
 }
 
 function requestArchive(account: Account) {
@@ -51,6 +59,11 @@ async function confirmArchive() {
   setAccounts((prev) => prev.filter((a) => a._id !== target._id));
   try {
     await archiveAccount(target._id);
+    toast({
+      title: "Account archived",
+      description: `Archived ${target.name}.`,
+      variant: "success",
+    });
   } catch (e: any) {
     await loadAccounts();
     setError(e?.message || "Failed to archive account");
@@ -112,19 +125,12 @@ async function confirmArchive() {
       )}
 
       {!loading && !error && accounts.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-10 text-center">
-          <div className="text-sm font-semibold text-gray-900">
-            No accounts yet
-          </div>
-          <div className="text-sm text-gray-500 mt-2">
-            Create your first account to start tracking balances.
-          </div>
-          <div className="mt-4">
-            <Button onClick={() => setModalOpen(true)}>
-              Create an account
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          title="No accounts yet"
+          description="Create an account to start tracking balances, goals, and transactions."
+          actionLabel="Create account"
+          onActionClick={() => setModalOpen(true)}
+        />
       )}
 
       {!loading && !error && accounts.length > 0 && (
@@ -220,7 +226,14 @@ async function confirmArchive() {
       <CreateAccountModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onCreated={loadAccounts}
+        onCreated={async () => {
+          await loadAccounts();
+          toast({
+            title: "Account created",
+            description: "Your new account is ready.",
+            variant: "success",
+          });
+        }}
         />
         <EditAccountModal
         open={editOpen}

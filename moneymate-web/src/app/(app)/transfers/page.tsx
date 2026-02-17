@@ -5,6 +5,8 @@ import { listTransfers, type Transfer } from "@/lib/transfers";
 import { listAccounts, type Account } from "@/lib/accounts";
 import { Button } from "@/components/ui/button";
 import CreateTransferModal from "@/components/transfers/createTransferModel";
+import EmptyState from "@/components/ui/empty-state";
+import { useToast } from "@/providers/ToastProvider";
 
 export default function TransfersPage() {
   const [transfers, setTransfers] = useState<Transfer[]>([]);
@@ -12,6 +14,7 @@ export default function TransfersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const { toast } = useToast();
 
   async function loadTransfers() {
     setLoading(true);
@@ -104,19 +107,14 @@ export default function TransfersPage() {
       )}
 
       {!loading && !error && sortedTransfers.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-10 text-center">
-          <div className="text-sm font-semibold text-gray-900">
-            No transfers yet
-          </div>
-          <div className="text-sm text-gray-500 mt-2">
-            Create a transfer to move funds between accounts.
-          </div>
-          <div className="mt-4">
-            <Button onClick={() => setCreateOpen(true)}>
-              New transfer
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          title="No transfers yet"
+          description="Transfers move money between your accounts and keep balances in sync."
+          actionLabel="New transfer"
+          onActionClick={() => setCreateOpen(true)}
+          imageSrc="/Lend-money-to-a-friend_AdobeStock_274070517.jpeg"
+          imageAlt="Illustration of sending money"
+        />
       )}
 
       {!loading && !error && sortedTransfers.length > 0 && (
@@ -183,7 +181,14 @@ export default function TransfersPage() {
       <CreateTransferModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={loadTransfers}
+        onCreated={async () => {
+          await loadTransfers();
+          toast({
+            title: "Transfer created",
+            description: "Your transfer has been added successfully.",
+            variant: "success",
+          });
+        }}
       />
     </main>
   );
