@@ -21,6 +21,8 @@ import { apiLimiter } from "./middlewares/rateLimit.middleware.js";
 
 dotenv.config(); // Load environment variables
 const app = express();
+// Required when behind proxies (Render/Vercel/NGINX) for secure cookies
+app.set("trust proxy", 1);
 connectDB(); // Connect to MongoDB
 // Parse JSON bodies
 app.use(express.json());
@@ -47,7 +49,11 @@ app.use("/api", apiLimiter);
  */
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN,
+    origin:
+      (process.env.FRONTEND_URL || process.env.CLIENT_ORIGIN || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
     credentials: true,
   })
 );

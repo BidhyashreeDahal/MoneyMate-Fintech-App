@@ -44,7 +44,7 @@ export const signup = async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -112,7 +112,7 @@ export const logout = (req, res) => {
     res.clearCookie('token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     return res.status(200).json({ message: 'Logout successful' });
@@ -169,7 +169,7 @@ export const forgotPassword = async (req, res) => {
 
     const resetUrlBase =
       process.env.PASSWORD_RESET_URL_BASE ||
-      `${process.env.CLIENT_ORIGIN || "http://localhost:3000"}/reset-password`;
+      `${process.env.FRONTEND_URL || process.env.CLIENT_ORIGIN || "http://localhost:3000"}/reset-password`;
     const resetUrl = `${resetUrlBase}?token=${encodeURIComponent(rawToken)}`;
 
     try {

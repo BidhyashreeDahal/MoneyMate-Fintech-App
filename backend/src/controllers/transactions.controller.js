@@ -260,6 +260,14 @@ export const attachReceiptToTransaction = async (req, res) => {
       return res.status(400).json({ message: "No receipt file uploaded." });
     }
 
+    // If uploads are disabled (e.g., production serverless), multer uses memoryStorage (no filename).
+    if (!req.file.filename) {
+      return res.status(503).json({
+        message:
+          "Receipt uploads are disabled in this environment. Set ENABLE_UPLOADS=true on a server with writable storage.",
+      });
+    }
+
     const receiptUrl = `/uploads/receipts/${req.file.filename}`;
 
     const tx = await Transaction.findOneAndUpdate(

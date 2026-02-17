@@ -2,8 +2,27 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+const uploadsEnabled =
+  process.env.DISABLE_UPLOADS === "true"
+    ? false
+    : process.env.ENABLE_UPLOADS === "true"
+      ? true
+      : process.env.NODE_ENV !== "production"; // default OFF in production (serverless-safe)
+
 const uploadDir = path.join(process.cwd(), "uploads", "receipts");
-fs.mkdirSync(uploadDir, { recursive: true });
+
+let diskReady = false;
+if (uploadsEnabled) {
+  try {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    diskReady = true;
+  } catch (err) {
+    // In serverless / read-only FS environments, this can fail.
+    // We fall back to disabling uploads rather than crashing the app.
+    diskReady = false;
+    console.warn("[uploads] Receipt uploads disabled (cannot create uploads dir):", err?.message || err);
+  }
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
@@ -23,7 +42,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 export const uploadReceipt = multer({
-  storage,
+  storage: diskReady ? storage : multer.memoryStorage(),
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
