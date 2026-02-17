@@ -307,13 +307,6 @@ export default function DashboardPage() {
                     dataKey="amount"
                     nameKey="category"
                     outerRadius={110}
-                    innerRadius={60}
-                    isAnimationActive
-                    animationDuration={650}
-                    labelLine={false}
-                    label={({ percent, name }) =>
-                      percent && percent >= 0.08 ? `${name} ${(percent * 100).toFixed(0)}%` : ""
-                    }
                   >
                     {categories.map((entry, index) => (
                       <Cell
@@ -322,13 +315,7 @@ export default function DashboardPage() {
                       />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: 12,
-                      border: "1px solid rgba(16,185,129,0.25)",
-                      boxShadow: "0 12px 32px rgba(2,6,23,0.08)",
-                    }}
-                  />
+                  <Tooltip />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>

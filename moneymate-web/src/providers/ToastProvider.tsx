@@ -55,9 +55,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`rounded-xl border p-3 shadow-sm transition-all duration-200 ease-out animate-[toast-in_180ms_ease-out] ${stylesFor(
-              t.variant
-            )}`}
+            className={`rounded-xl border p-3 shadow-sm ${stylesFor(t.variant)}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
