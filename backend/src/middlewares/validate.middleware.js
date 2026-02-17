@@ -11,20 +11,20 @@ export const validateBody = (schema) => (req, res, next) => {
     req.body = schema.parse(req.body);
     return next();
   } catch (error) {
-    res.status(400);
-
-    // Debug line (temporary)
-    console.log("VALIDATION ERROR TYPE:", error?.constructor?.name);
-
     if (error instanceof ZodError) {
       const details = error.issues.map((i) => ({
         field: i.path.join("."),
         message: i.message,
       }));
-      return next(new Error(JSON.stringify(details)));
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: details,
+      });
     }
 
     // If it's not ZodError, it means schema was wrong or another error happened
-    return next(new Error(error?.message || "Invalid request body"));
+    return res.status(400).json({
+      message: error?.message || "Invalid request body",
+    });
   }
 };
