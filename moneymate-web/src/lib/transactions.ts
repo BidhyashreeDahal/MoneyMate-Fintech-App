@@ -3,7 +3,7 @@
  * Handles API class for transactions
  */
 
-import { apiFetch, API_BASE } from "./api";
+import { apiFetch, getApiBaseOrThrow, parseApiError } from "./api";
 export type Transaction = {
     _id: string;
     userId: string;
@@ -66,21 +66,15 @@ export async function uploadReceipt(id: string, file: File): Promise<Transaction
     const formData = new FormData();
     formData.append("receipt", file);
 
-    const res = await fetch(`${API_BASE}/api/transactions/${id}/receipt`, {
+    const base = getApiBaseOrThrow();
+    const res = await fetch(`${base}/api/transactions/${id}/receipt`, {
         method: "POST",
         body: formData,
         credentials: "include",
     });
 
     if (!res.ok) {
-        let message = "Upload failed";
-        try {
-            const data = await res.json();
-            message = data?.message || message;
-        } catch {
-            // keep default
-        }
-        throw new Error(message);
+        throw await parseApiError(res, "Upload failed");
     }
 
     const data = await res.json();

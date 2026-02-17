@@ -1,4 +1,4 @@
-import { API_BASE } from "./api";
+import { getApiBaseOrThrow, parseApiError } from "./api";
 
 export type ParsedReceipt = {
   merchant: string | null;
@@ -14,21 +14,15 @@ export async function parseReceiptAI(
   const formData = new FormData();
   formData.append("receipt", file);
 
-  const res = await fetch(`${API_BASE}/api/receipts/parse`, {
+  const base = getApiBaseOrThrow();
+  const res = await fetch(`${base}/api/receipts/parse`, {
     method: "POST",
     body: formData,
     credentials: "include",
   });
 
   if (!res.ok) {
-    let message = "Receipt parse failed";
-    try {
-      const data = await res.json();
-      message = data?.message || message;
-    } catch {
-      // keep default
-    }
-    throw new Error(message);
+    throw await parseApiError(res, "Receipt parse failed");
   }
 
   const data = await res.json();
