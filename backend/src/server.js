@@ -58,6 +58,11 @@ app.use(
   })
 );
 
+// Health check endpoint (Render)
+app.get("/healthz", (req, res) => {
+  return res.status(200).json({ ok: true });
+});
+
 app.use("/uploads", express.static("uploads"));
 
 
