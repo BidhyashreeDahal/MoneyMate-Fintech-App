@@ -5,7 +5,16 @@
  */
 
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  process.env.NEXT_PUBLIC_API_URL;
+
+function getApiBaseOrThrow() {
+  if (!API_BASE) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_API_URL. Set it in moneymate-web/.env.local (or your hosting env) to your backend URL, e.g. https://your-backend.com"
+    );
+  }
+  return API_BASE.replace(/\/+$/, "");
+}
 
 /**
  * Typed fetch helper.
@@ -18,7 +27,8 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const base = getApiBaseOrThrow();
+  const res = await fetch(`${base}${path}`, {
     ...options,
 
     // Critical for cookie-based auth (JWT stored in HttpOnly cookie)

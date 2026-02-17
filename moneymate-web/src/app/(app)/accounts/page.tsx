@@ -76,7 +76,7 @@ async function confirmArchive() {
         setLoading (true); // show loading state
         setError (null); // clear previous error
         try{
-            const data = await listAccounts(); //Call backend: GET http://localhost:5000/api/accounts
+            const data = await listAccounts(); // Call backend: GET /api/accounts
             setAccounts (data || []); // Save account to the react state
         } catch(e:any){
             setError (e.message || "Failed to load accounts");

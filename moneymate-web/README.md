@@ -2,6 +2,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+## Environment variables
+
+Create `moneymate-web/.env.local` (copy from `.env.example`) and set:
+
+- `NEXT_PUBLIC_API_URL`: your backend base URL (example: `http://localhost:5000`)
+
 First, run the development server:
 
 ```bash
