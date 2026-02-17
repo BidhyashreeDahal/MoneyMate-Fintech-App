@@ -311,6 +311,12 @@ export default function InsightsPage() {
                   nameKey="category"
                   outerRadius={140}
                   innerRadius={80}
+                  isAnimationActive
+                  animationDuration={650}
+                  labelLine={false}
+                  label={({ percent, name }) =>
+                    percent && percent >= 0.06 ? `${name} ${(percent * 100).toFixed(0)}%` : ""
+                  }
                 >
                   {categories.map(
                     (entry, index) => (
@@ -328,6 +334,11 @@ export default function InsightsPage() {
                 </Pie>
                 <Tooltip
                   formatter={formatCurrency}
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "1px solid rgba(16,185,129,0.25)",
+                    boxShadow: "0 12px 32px rgba(2,6,23,0.08)",
+                  }}
                 />
                 <Legend />
               </PieChart>

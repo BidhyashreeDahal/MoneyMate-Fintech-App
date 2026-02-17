@@ -157,31 +157,33 @@ export default function TransactionsPage() {
             </div>
           </div>
 
-          {/* Column headers */}
-          <div className="grid grid-cols-12 gap-3 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
-            <div className="col-span-2">Date</div>
-            <div className="col-span-4">notes</div>
-            <div className="col-span-2">Category</div>
-            <div className="col-span-2">Account</div>
-            <div className="col-span-2 text-right">Amount</div>
-          </div>
+          <div className="max-h-[70vh] overflow-auto">
+            {/* Column headers (sticky) */}
+            <div className="sticky top-0 z-10 grid grid-cols-12 gap-3 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b bg-white/95 backdrop-blur">
+              <div className="col-span-2">Date</div>
+              <div className="col-span-4">notes</div>
+              <div className="col-span-2">Category</div>
+              <div className="col-span-2">Account</div>
+              <div className="col-span-2 text-right">Amount</div>
+            </div>
 
-      {/* Rows */}
-      <div>
-        {transactions.map((t) => {
-          const isExpense = t.type === "expense";
-          const isTransferTx =
-            t.category === "Transfer In" || t.category === "Transfer Out" || t.type === "transfer";
-          const displayDesc =
-            t.notes && t.notes.trim()
-              ? t.notes
-              : "";
+            {/* Rows */}
+            <div>
+              {transactions.map((t, idx) => {
+                const isExpense = t.type === "expense";
+                const isTransferTx =
+                  t.category === "Transfer In" ||
+                  t.category === "Transfer Out" ||
+                  t.type === "transfer";
+                const displayDesc = t.notes && t.notes.trim() ? t.notes : "";
 
-          const accountName = accountNameById[t.accountId] || "—";
+                const accountName = accountNameById[t.accountId] || "—";
 
-          return (
-            <div key={t._id}
-             className="grid grid-cols-12 gap-3 px-4 py-3 border-b last:border-b-0 items-center hover:bg-emerald-50/40">
+                return (
+                  <div
+                    key={t._id}
+                    className={`grid grid-cols-12 gap-3 px-4 py-3 border-b last:border-b-0 items-center hover:bg-emerald-50/40 transition-colors ${idx % 2 === 1 ? "bg-emerald-50/10" : ""}`}
+                  >
                 <div className="col-span-2 text-sm text-gray-500">
                   {new Date(t.date).toLocaleDateString()}
                 </div>
@@ -223,11 +225,12 @@ export default function TransactionsPage() {
                   </div>
                 </div>
               </div>
-          );
-        })}
-      </div>
-    </div>
-  )}
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
   {/* Modal */}
   <CreateTransactionModal
