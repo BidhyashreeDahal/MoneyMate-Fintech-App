@@ -49,11 +49,26 @@ app.use("/api", apiLimiter);
  */
 app.use(
   cors({
-    origin:
-      (process.env.FRONTEND_URL || process.env.CLIENT_ORIGIN || "")
+    origin: (origin, cb) => {
+      const allowed = (process.env.FRONTEND_URL || process.env.CLIENT_ORIGIN || "")
         .split(",")
         .map((s) => s.trim())
-        .filter(Boolean),
+        .filter(Boolean);
+
+      // Non-browser requests (curl, server-to-server) don't send Origin
+      if (!origin) return cb(null, true);
+
+      // Exact allowlist match
+      if (allowed.includes(origin)) return cb(null, true);
+
+      // Allow Vercel preview URLs for this project (credentials-safe, still restricted)
+      // Example: https://money-mate-fintech-xxxxx-bidhyashreedahals-projects.vercel.app
+      if (/^https:\/\/money-mate-fintech.*\.vercel\.app$/i.test(origin)) {
+        return cb(null, true);
+      }
+
+      return cb(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
