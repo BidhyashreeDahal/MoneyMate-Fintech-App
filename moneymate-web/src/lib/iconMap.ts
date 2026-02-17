@@ -4,9 +4,10 @@ import {
   CreditCard,
   Landmark,
   Briefcase,
+  type LucideIcon,
 } from "lucide-react";
 
-export const iconMap: Record<string, any> = {
+export const iconMap: Record<string, LucideIcon> = {
   wallet: Wallet,
   piggybank: PiggyBank,
   credit_card: CreditCard,

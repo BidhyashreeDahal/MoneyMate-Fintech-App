@@ -48,3 +48,25 @@ export async function logout(){
         method: "POST",
     });
 }
+
+/**
+ * POST /api/auth/forgot-password
+ * Requests a password reset email (response is the same whether the email exists or not).
+ */
+export async function requestPasswordReset(email: string) {
+  return apiFetch<{ message: string }>("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+/**
+ * POST /api/auth/reset-password
+ * Resets password using a token from the reset link.
+ */
+export async function resetPassword(token: string, password: string) {
+  return apiFetch<{ message: string }>("/api/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ token, password }),
+  });
+}

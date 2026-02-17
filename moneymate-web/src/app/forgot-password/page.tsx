@@ -1,14 +1,28 @@
  "use client";
  
  import { useState } from "react";
+import { requestPasswordReset } from "@/lib/auth";
  
  export default function ForgotPasswordPage() {
      const [email, setEmail] = useState("");
      const [submitted, setSubmitted] = useState(false);
+     const [submitting, setSubmitting] = useState(false);
+     const [error, setError] = useState<string | null>(null);
  
-     function handleSubmit(e: React.FormEvent) {
+     async function handleSubmit(e: React.FormEvent) {
          e.preventDefault();
-         setSubmitted(true);
+         setError(null);
+         setSubmitting(true);
+         try {
+           await requestPasswordReset(email);
+           setSubmitted(true);
+         } catch (err: unknown) {
+           const message =
+             err instanceof Error ? err.message : "Failed to request reset link";
+           setError(message);
+         } finally {
+           setSubmitting(false);
+         }
      }
  
      return (
@@ -42,10 +56,17 @@
  
            <button
              type="submit"
+             disabled={submitting}
              className="h-11 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700"
            >
-             Send reset link
+             {submitting ? "Sending..." : "Send reset link"}
            </button>
+
+           {error && (
+             <p className="text-sm text-red-600 text-center">
+               {error}
+             </p>
+           )}
  
            {submitted && (
              <p className="text-sm text-emerald-700 text-center">

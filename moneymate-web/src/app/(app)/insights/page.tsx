@@ -9,6 +9,7 @@ import {
   type CategoryBreakdown,
   type MonthlyTrend,
 } from "@/lib/insights";
+import { getMonthlyAiReport, type MonthlyAiReportResponse } from "@/lib/reports";
 
 import {
   LineChart,
@@ -53,6 +54,17 @@ export default function InsightsPage() {
     useState<CategoryBreakdown[]>([]);
   const [monthly, setMonthly] =
     useState<MonthlyTrend[]>([]);
+
+  const [reportMonth, setReportMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [aiReport, setAiReport] =
+    useState<MonthlyAiReportResponse | null>(null);
+  const [reportLoading, setReportLoading] =
+    useState(false);
+  const [reportError, setReportError] =
+    useState<string | null>(null);
 
   const [loading, setLoading] =
     useState(true);
@@ -99,6 +111,21 @@ export default function InsightsPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  async function generateReport() {
+    setReportError(null);
+    setReportLoading(true);
+    try {
+      const data = await getMonthlyAiReport(reportMonth);
+      setAiReport(data);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to generate report";
+      setReportError(message);
+    } finally {
+      setReportLoading(false);
+    }
+  }
 
   if (loading)
     return (
@@ -153,6 +180,62 @@ export default function InsightsPage() {
           />
         </div>
       )}
+
+      {/* AI Monthly Report */}
+      <section className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">AI Monthly Financial Report</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Generate an AI summary and recommendations for a selected month.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="grid gap-1">
+              <label className="text-xs font-medium text-gray-600">Month</label>
+              <input
+                type="month"
+                value={reportMonth}
+                onChange={(e) => setReportMonth(e.target.value)}
+                className="h-10 rounded-md border border-gray-200 px-3 text-sm"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={generateReport}
+              disabled={reportLoading}
+              className="h-10 mt-5 sm:mt-0 rounded-md bg-emerald-600 text-white text-sm font-semibold px-4 hover:bg-emerald-700 disabled:opacity-60"
+            >
+              {reportLoading ? "Generating..." : "Generate"}
+            </button>
+          </div>
+        </div>
+
+        {reportError && (
+          <p className="mt-4 text-sm text-red-600">{reportError}</p>
+        )}
+
+        {aiReport && (
+          <div className="mt-6 grid gap-4">
+            {!aiReport.aiEnabled && (
+              <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-3">
+                {aiReport.reportMarkdown}
+              </p>
+            )}
+
+            {aiReport.aiEnabled && aiReport.reportMarkdown && (
+              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">
+                  Report
+                </div>
+                <div className="whitespace-pre-wrap text-sm text-gray-900">
+                  {aiReport.reportMarkdown}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
 
       {/* Monthly Trend */}
       <section className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">

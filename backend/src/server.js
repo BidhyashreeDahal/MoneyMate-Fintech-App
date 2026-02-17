@@ -12,6 +12,7 @@ import insightsRoutes from './routes/insights.routes.js';
 import transferRoutes from './routes/transfers.routes.js';
 import budgetRoutes from "./routes/budgets.routes.js";
 import receiptRoutes from "./routes/receipts.routes.js";
+import reportRoutes from "./routes/reports.routes.js";
 import { notFound, errorHandler } from "./middlewares/error.middleware.js";
 import helmet from "helmet";
 import cors from "cors";
@@ -67,6 +68,8 @@ app.use("/api/insights", insightsRoutes);
 app.use("/api/budgets", budgetRoutes);
 
 app.use("/api/receipts", receiptRoutes);
+
+app.use("/api/reports", reportRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
