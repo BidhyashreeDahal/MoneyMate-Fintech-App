@@ -1,49 +1,138 @@
-## MoneyMate — Full‑Stack Personal Finance App
-Live : https://money-mate-fintech-app.vercel.app/
+## MoneyMate
 
-MoneyMate helps users track day‑to‑day finances in one place: manage accounts, record transactions and transfers, set budgets, and view dashboards/insights. It also supports receipt workflows and an AI-generated monthly financial report.
+**Full‑Stack Personal Finance Platform**
 
-This repository includes:
+### Live application
 
-- `backend/`: Express + MongoDB API (cookie-based auth)
-- `moneymate-web/`: Next.js web app (React + TypeScript)
+- Web: `https://money-mate-fintech-app.vercel.app/`
 
-## Features
+### Overview
 
-- **Auth**: email/password login + JWT stored in **HttpOnly cookies**
-- **Accounts**: create/update/archive accounts and track balances + goals
-- **Transactions**: income/expense tracking, statement-style UI, archive support
-- **Transfers**: move money between accounts
-- **Budgets**: category budgets with alerts and progress UI
-- **Insights/Dashboard**: charts (cashflow trend + category breakdown) + KPI cards
-- **Receipts**: upload a receipt to attach to a transaction (see deployment note below)
-- **AI Monthly Financial Report**: generates a monthly narrative summary with provider fallbacks (Gemini/Groq/OpenAI based on env)
-- **Password reset**: forgot/reset password flow with email providers (Resend or SMTP)
+MoneyMate is a full-stack personal finance platform designed to help users manage accounts, track transactions, control budgets, and generate intelligent financial insights.
 
-## Tech stack
+The system includes:
 
-- **Web**: Next.js (App Router), React, TypeScript, Tailwind CSS, Recharts
-- **Backend**: Node.js, Express, MongoDB (Mongoose), JWT, Zod validation
-- **Email**: Resend (recommended) or SMTP (Nodemailer)
-- **AI**: Gemini / Groq (OpenAI-compatible) / OpenAI (optional)
-- **OCR**: `tesseract.js` for receipt text extraction
+- A secure **Express + MongoDB** API with cookie-based authentication
+- A modern **Next.js (App Router)** frontend built with React and TypeScript
+- AI-powered monthly financial summaries
+- OCR-based receipt parsing
+- Email-based password recovery workflows
 
-## Repository structure
+The application emphasizes secure authentication, structured financial data modeling, and production-ready deployment practices.
 
-- `backend/` — Express API server
-- `moneymate-web/` — Next.js web app
+### Screenshots (optional)
+
+Add these files to `docs/images/` and update the links below:
+
+- Sign in: `docs/images/signin.png`
+- Sign up: `docs/images/signup.png`
+- Dashboard: `docs/images/dashboard.png`
+
+## Architecture
+
+```
+MoneyMate
+├── backend/         → Express API (Node.js, MongoDB, JWT auth)
+└── moneymate-web/   → Next.js frontend (React, TypeScript, Tailwind)
+```
+
+## Authentication model
+
+- JWT tokens stored in **HttpOnly** cookies
+- CORS configured with **credential support**
+- Secure cookie settings for production environments
+
+## Core features
+
+### Authentication & security
+
+- Email/password authentication
+- JWT stored in HttpOnly cookies
+- Secure password reset flow via email
+- Production-safe CORS and cookie configuration
+
+### Account management
+
+- Create, update, and archive financial accounts
+- Track balances and optional financial goals
+- Real-time balance updates
+
+### Transactions
+
+- Income and expense tracking
+- Category assignment
+- Statement-style transaction view
+- Archive support
+
+### Transfers
+
+- Move funds between accounts
+- Status tracking
+
+### Budgets
+
+- Category-based budgeting
+- Threshold alerts
+- Visual progress tracking
+
+### Insights & analytics
+
+- Cashflow trend visualization
+- Category breakdown charts
+- KPI summary cards
+- Net position calculation
+
+### AI financial report
+
+- Monthly AI-generated financial summary
+- Provider fallback support:
+  - Gemini
+  - Groq (OpenAI-compatible)
+  - OpenAI
+
+### Receipt processing
+
+- OCR extraction via `tesseract.js`
+- Receipt parsing workflow
+- Optional receipt attachment to transactions (storage provider configurable)
+
+## Technology stack
+
+### Frontend
+
+- Next.js (App Router)
+- React
+- TypeScript
+- Tailwind CSS
+- Recharts
+
+### Backend
+
+- Node.js
+- Express
+- MongoDB (Mongoose)
+- JWT authentication
+- Zod validation
+
+### AI & OCR
+
+- Gemini / Groq / OpenAI (configurable)
+- `tesseract.js`
+
+### Email
+
+- SMTP (Nodemailer)
+- Resend (optional)
 
 ## Local development
 
 ### Prerequisites
 
-- Node.js (recommended: **18+ / 20+**)
+- Node.js 18+
 - npm
-- MongoDB (Atlas or local)
+- MongoDB (local or Atlas)
 
-### 1) Backend setup
-
-From the repo root:
+### Backend setup
 
 ```bash
 cd backend
@@ -52,81 +141,87 @@ npm install
 npm run dev
 ```
 
-Backend runs on `http://localhost:5000` by default.
+Default backend URL: `http://localhost:5000`
 
-### 2) Web app setup
-
-In a second terminal:
+### Frontend setup
 
 ```bash
 cd moneymate-web
 cp .env.example .env.local
 ```
 
-Set `moneymate-web/.env.local`:
+Set `NEXT_PUBLIC_API_URL` in `moneymate-web/.env.local`:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-Then:
+Then run:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Web runs on `http://localhost:3000`.
+Frontend runs on: `http://localhost:3000`
 
 ## Environment variables
 
 ### Backend (`backend/.env`)
 
-See `backend/.env.example`. Common variables:
+Required:
 
-- **Required**
-  - `MONGO_URI`
-  - `JWT_SECRET`
-  - `PORT` (default: `5000`)
-  - `NODE_ENV` (`development` / `production`)
-  - `FRONTEND_URL` (recommended) or `CLIENT_ORIGIN` (used for CORS)
-- **Password reset**
-  - `PASSWORD_RESET_URL_BASE` (e.g. `https://your-frontend/reset-password`)
-- **Email**
-  - Resend: `RESEND_API_KEY`, `RESEND_FROM`
-  - SMTP fallback: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
-- **AI (optional)**
-  - Gemini: `GEMINI_API_KEY`, `GEMINI_MODEL`
-  - Groq: `GROQ_API_KEY`, `GROQ_MODEL`, `GROQ_MODEL_RECEIPT`
-  - OpenAI: `OPENAI_API_KEY`
-- **Uploads**
-  - `ENABLE_UPLOADS=true` (only for servers with writable disk storage)
-  - `DISABLE_UPLOADS=true` (force off)
+- `MONGO_URI`
+- `JWT_SECRET`
+- `NODE_ENV`
+- `PORT`
+- `FRONTEND_URL`
 
-### Web (`moneymate-web/.env.local`)
+Password reset:
 
-See `moneymate-web/.env.example`:
+- `PASSWORD_RESET_URL_BASE`
 
-- `NEXT_PUBLIC_API_URL` (required)
+Email (choose one):
 
-## Deployment notes (important)
+- SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
+- Resend (optional): `RESEND_API_KEY`, `RESEND_FROM`
 
-### Cookies + CORS
+AI providers (optional):
 
-This project uses **cookie-based auth**. In production:
+- `GEMINI_API_KEY`
+- `GROQ_API_KEY`
+- `OPENAI_API_KEY`
 
-- Backend must enable `credentials: true` and set CORS `origin` to your frontend URL.
-- Cookies must be set with:
-  - `secure: true` (HTTPS)
-  - `sameSite: "none"` (when frontend and backend are on different sites)
-- If your backend is behind a proxy (most platforms), `trust proxy` must be enabled.
+Upload control:
 
-### Receipt uploads and serverless
+- `ENABLE_UPLOADS=true`
+- `DISABLE_UPLOADS=true`
 
-Receipt upload storage on local disk **does not work on serverless** environments (e.g. Vercel). For safety:
+### Frontend (`moneymate-web/.env.local`)
 
-- Uploads are **disabled by default in production** unless `ENABLE_UPLOADS=true`.
-- If you need uploads in production, use a backend platform with writable storage or switch to object storage (S3/R2/etc).
+- `NEXT_PUBLIC_API_URL`
+
+## Deployment considerations
+
+### Cookie configuration (production)
+
+Ensure:
+
+- `secure: true`
+- `sameSite: "none"`
+- `httpOnly: true`
+- `app.set("trust proxy", 1)`
+
+CORS must allow credentials.
+
+### Serverless upload limitation
+
+Local disk storage does not persist in serverless environments.
+
+Receipt uploads are typically:
+
+- Disabled by default in production, or
+- Stored using object storage (Cloudinary / S3 / R2)
 
 ## Scripts
 
@@ -136,22 +231,37 @@ Receipt upload storage on local disk **does not work on serverless** environment
 cd backend
 npm run dev
 npm start
+npm test
 ```
 
-### Web
+### Frontend
 
 ```bash
 cd moneymate-web
 npm run dev
 npm run build
 npm start
+npm test
 ```
 
-## Security
+## CI/CD
 
-- Never commit real secrets. Use `.env.example` files as templates.
-- Keep `.env` / `.env.local` out of git.
+- Frontend: automatic deployment via Vercel
+- Backend: designed for GitHub Actions CI integration
+- Supports automated testing pipelines
+
+## Security practices
+
+- Secrets stored in environment variables
+- `.env` files excluded from version control
+- Cookie-based authentication
+- Input validation via Zod
 
 ## License
 
-MIT (or update as needed).
+MIT License
+
+![alt text](moneymate-web/public/sigin/Signin/signup.png)
+![alt text](image.png)
+
+
