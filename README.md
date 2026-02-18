@@ -1,4 +1,5 @@
 ## MoneyMate — Full‑Stack Personal Finance App
+Live : https://money-mate-fintech-app.vercel.app/
 
 MoneyMate helps users track day‑to‑day finances in one place: manage accounts, record transactions and transfers, set budgets, and view dashboards/insights. It also supports receipt workflows and an AI-generated monthly financial report.
 
