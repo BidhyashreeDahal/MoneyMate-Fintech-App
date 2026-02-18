@@ -77,7 +77,7 @@ export default function BudgetsPage() {
       <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-semibold">
+            <h1 className="text-2xl font-semibold">
               Budgets
             </h1>
             <p className="text-sm text-gray-500 mt-1">

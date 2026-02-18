@@ -512,7 +512,7 @@ function KpiCard({
         {label}
       </div>
       <div
-        className={`text-2xl font-semibold mt-3 tracking-tight ${accentStyles}`}
+        className={`text-xl sm:text-2xl font-semibold mt-3 tracking-tight ${accentStyles}`}
       >
         {value}
       </div>
