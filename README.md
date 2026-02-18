@@ -1,6 +1,7 @@
 ## MoneyMate
 
 **Full‑Stack Personal Finance Platform**
+<p align="center"> <a href="https://money-mate-fintech-app.vercel.app/"> <img src="https://img.shields.io/badge/Live-Demo-111827?style=for-the-badge&logo=vercel&logoColor=white" /> </a> <img src="https://img.shields.io/badge/Next.js-App_Router-black?style=for-the-badge&logo=nextdotjs" /> <img src="https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white" /> <img src="https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb&logoColor=white" /> <img src="https://img.shields.io/badge/Auth-JWT_HttpOnly_Cookies-0ea5e9?style=for-the-badge" /> <img src="https://img.shields.io/badge/AI-Gemini%20%7C%20Groq%20%7C%20OpenAI-7c3aed?style=for-the-badge" /> <img src="https://img.shields.io/badge/OCR-Tesseract.js-f59e0b?style=for-the-badge" /> <img src="https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge" /> </p>
 
 ### Live application
 
