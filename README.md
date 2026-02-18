@@ -4,7 +4,7 @@
 
 ### Live application
 
-- Web: `https://money-mate-fintech-app.vercel.app/`
+- Web: https://money-mate-fintech-app.vercel.app/
 
 ### Overview
 
@@ -260,6 +260,7 @@ npm test
 ## License
 
 MIT License
+##Images
 
 ![alt text](moneymate-web/public/sigin/Signin/signup.png)
 ![alt text](image.png)
