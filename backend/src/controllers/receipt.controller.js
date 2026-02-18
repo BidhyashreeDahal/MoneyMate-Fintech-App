@@ -32,11 +32,51 @@ function extractJsonFromText(text) {
   return null;
 }
 
+function parseReceiptAmount(value) {
+  if (value == null) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+
+  // Handle common formats like: "92,75" or "1 234,50" or "$1,234.50" or "1.234,50"
+  if (typeof value === "string") {
+    let s = value.trim();
+    if (!s) return null;
+
+    // Keep digits, separators, minus
+    s = s.replace(/[^\d.,-]/g, "");
+    if (!s) return null;
+
+    const hasComma = s.includes(",");
+    const hasDot = s.includes(".");
+
+    if (hasComma && hasDot) {
+      // Decide decimal separator by whichever appears last
+      const lastComma = s.lastIndexOf(",");
+      const lastDot = s.lastIndexOf(".");
+      if (lastComma > lastDot) {
+        // "1.234,56" -> "1234.56"
+        s = s.replace(/\./g, "").replace(",", ".");
+      } else {
+        // "1,234.56" -> "1234.56"
+        s = s.replace(/,/g, "");
+      }
+    } else if (hasComma && !hasDot) {
+      // "92,75" -> "92.75"
+      s = s.replace(",", ".");
+    }
+
+    const num = Number.parseFloat(s);
+    return Number.isFinite(num) ? num : null;
+  }
+
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 function normalizeReceipt(parsed) {
   if (!parsed || typeof parsed !== "object") return null;
   return {
     merchant: parsed.merchant != null ? String(parsed.merchant).trim() : null,
-    total: typeof parsed.total === "number" ? parsed.total : Number(parsed.total) || null,
+    total: parseReceiptAmount(parsed.total),
     date: parsed.date ? String(parsed.date).trim().slice(0, 10) : null,
     category: parsed.category != null ? String(parsed.category).trim() : null,
     currency: parsed.currency != null ? String(parsed.currency).trim() : null,
