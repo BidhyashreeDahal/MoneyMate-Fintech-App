@@ -1,4 +1,4 @@
-import { getApiBaseOrThrow, parseApiError } from "./api";
+import { parseApiError } from "./api";
 
 export type ParsedReceipt = {
   merchant: string | null;
@@ -14,11 +14,15 @@ export async function parseReceiptAI(
   const formData = new FormData();
   formData.append("receipt", file);
 
-  const base = getApiBaseOrThrow();
+  // Local uses env variable
+  // Production uses relative path (Vercel rewrite)
+  const base =
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "";
+
   const res = await fetch(`${base}/api/receipts/parse`, {
     method: "POST",
     body: formData,
-    credentials: "include",
+    credentials: "include", // keep for cookie auth
   });
 
   if (!res.ok) {

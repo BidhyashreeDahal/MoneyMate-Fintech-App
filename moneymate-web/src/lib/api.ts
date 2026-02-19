@@ -2,19 +2,10 @@
  * api.ts
  * -------------------------------------------------------
  * Helper for making typed API requests to the backend.
+ * Supports:
+ * - Local dev (NEXT_PUBLIC_API_URL=http://localhost:5000)
+ * - Production (Vercel rewrite proxy using relative /api paths)
  */
-
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL;
-
-export function getApiBaseOrThrow() {
-  if (!API_BASE) {
-    throw new Error(
-      "Missing NEXT_PUBLIC_API_URL. Set it in moneymate-web/.env.local (or your hosting env) to your backend URL, e.g. https://your-backend.com"
-    );
-  }
-  return API_BASE.replace(/\/+$/, "");
-}
 
 type FieldErrorItem = { field?: string; message?: string } | string;
 
@@ -58,6 +49,7 @@ function buildMessageFromValidation(data: unknown) {
 
   const message = Array.from(new Set(messages)).join("\n");
   const hasFieldErrors = Object.keys(fieldErrors).length > 0;
+
   return { message: message || null, fieldErrors: hasFieldErrors ? fieldErrors : undefined };
 }
 
@@ -84,41 +76,44 @@ export async function parseApiError(res: Response, fallbackMessage: string) {
   }
 
   const normalized = buildMessageFromValidation(data);
+
   const message =
     normalized.message ||
     (data && typeof data === "object" && typeof (data as any).message === "string"
       ? String((data as any).message)
       : fallbackMessage);
 
-  return new ApiError(message, { status: res.status, fieldErrors: normalized.fieldErrors, raw: data });
+  return new ApiError(message, {
+    status: res.status,
+    fieldErrors: normalized.fieldErrors,
+    raw: data,
+  });
 }
 
 /**
  * Typed fetch helper.
- * <T> lets TypeScript know what shape you expect back.
- *
- * Example:
- *   const data = await apiFetch<{ accounts: Account[] }>("/api/accounts");
+ * Automatically supports:
+ * - Local backend via NEXT_PUBLIC_API_URL
+ * - Production via Vercel rewrite proxy (/api)
  */
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const base = getApiBaseOrThrow();
+  // If env exists (local), use it.
+  // If not (production), use relative path.
+  const base =
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "";
+
   const res = await fetch(`${base}${path}`, {
     ...options,
-
-    // Critical for cookie-based auth (JWT stored in HttpOnly cookie)
-    credentials: "include",
-
-    // Default JSON headers (caller can override by passing options.headers)
+    credentials: "include", // required for cookie auth
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },
   });
 
-  // Normalize API errors into a single thrown Error(message)
   if (!res.ok) {
     throw await parseApiError(res, "Request failed");
   }
