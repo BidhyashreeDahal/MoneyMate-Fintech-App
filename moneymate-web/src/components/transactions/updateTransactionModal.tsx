@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { updateTransaction, uploadReceipt, type Transaction } from "@/lib/transactions";
 import { type Account } from "@/lib/accounts";
-import { API_BASE } from "@/lib/api";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,48 +34,14 @@ type Props = {
 const TX_TYPES = ["expense", "income"] as const;
 
 const DEFAULT_CATEGORIES = [
-  "Groceries",
-  "Food & Drinks",
-  "Coffee & Snacks",
-  "Shopping",
-  "Personal Care",
-  "Health",
-  "Pharmacy",
-  "Rent",
-  "Mortgage",
-  "Home Maintenance",
-  "Utilities",
-  "Internet",
-  "Phone Bill",
-  "Fuel",
-  "Public Transit",
-  "Taxi / Ride-sharing",
-  "Parking",
-  "Vehicle Maintenance",
-  "Movies",
-  "Music",
-  "Games",
-  "Activities",
-  "Nightlife",
-  "Subscriptions",
-  "Bank Fees",
-  "Investments",
-  "Insurance",
-  "Loans",
-  "Tax Payments",
-  "Flights",
-  "Hotels",
-  "Travel Food",
-  "Transportation",
-  "Vacation Activities",
-  "Salary",
-  "Bonus",
-  "Refund",
-  "Investment Income",
-  "Gift Income",
-  "Other Income",
-  "Transfer In",
-  "Transfer Out",
+  "Groceries","Food & Drinks","Coffee & Snacks","Shopping","Personal Care",
+  "Health","Pharmacy","Rent","Mortgage","Home Maintenance","Utilities",
+  "Internet","Phone Bill","Fuel","Public Transit","Taxi / Ride-sharing",
+  "Parking","Vehicle Maintenance","Movies","Music","Games","Activities",
+  "Nightlife","Subscriptions","Bank Fees","Investments","Insurance","Loans",
+  "Tax Payments","Flights","Hotels","Travel Food","Transportation",
+  "Vacation Activities","Salary","Bonus","Refund","Investment Income",
+  "Gift Income","Other Income","Transfer In","Transfer Out",
 ] as const;
 
 function toISODateInputValue(d: Date) {
@@ -139,8 +104,10 @@ export default function UpdateTransactionModal({
     setError(null);
     if (!accountId) return setError("Please select an account.");
     if (!amount.trim()) return setError("Amount is required.");
+
     const amt = Number(amount);
-    if (!Number.isFinite(amt) || amt <= 0) return setError("Amount must be greater than 0.");
+    if (!Number.isFinite(amt) || amt <= 0)
+      return setError("Amount must be greater than 0.");
     if (!category.trim()) return setError("Category is required.");
     if (!date) return setError("Date is required.");
 
@@ -169,22 +136,16 @@ export default function UpdateTransactionModal({
     }
   }
 
-  const triggerClass = "bg-white text-black border border-gray-300";
-  const contentClass = "bg-white text-black border border-gray-300 shadow-md z-[9999]";
-  const itemClass =
-    "text-black data-[highlighted]:bg-gray-100 data-[highlighted]:text-black";
+  // Base for local OR production proxy
+  const base =
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "";
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        if (!v) onClose();
-      }}
-    >
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle className="text-base font-semibold">Edit transaction</DialogTitle>
-          <DialogDescription className="text-sm text-gray-600">
+          <DialogTitle>Edit transaction</DialogTitle>
+          <DialogDescription>
             Update details or attach a receipt.
           </DialogDescription>
         </DialogHeader>
@@ -196,136 +157,22 @@ export default function UpdateTransactionModal({
         )}
 
         <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
-            <Label className="text-sm">Account</Label>
-            <Select value={accountId} onValueChange={setAccountId} disabled={isTransferTx}>
-              <SelectTrigger className={triggerClass}>
-                <SelectValue placeholder="Select account" />
-              </SelectTrigger>
-              <SelectContent position="popper" className={contentClass}>
-                {accounts.map((a) => (
-                  <SelectItem className={itemClass} key={a._id} value={a._id}>
-                    {a.name} • {a.type.toUpperCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedAccount && (
-              <p className="text-xs text-gray-600">
-                Currency: {selectedAccount.currency || "CAD"}
-              </p>
-            )}
-          </div>
+          <Input value={amount} onChange={(e) => setAmount(e.target.value)} />
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label className="text-sm">Type</Label>
-              <Select
-                value={type}
-                onValueChange={(v) => setType(v as any)}
-                disabled={isTransferTx}
-              >
-                <SelectTrigger className={triggerClass}>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent position="popper" className={contentClass}>
-                  {TX_TYPES.map((t) => (
-                    <SelectItem className={itemClass} key={t} value={t}>
-                      {t.toUpperCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label className="text-sm" htmlFor="amount">Amount</Label>
-              <Input
-                id="amount"
-                className="bg-white text-black border border-gray-300"
-                type="number"
-                min={0}
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                disabled={isTransferTx}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label className="text-sm">Category</Label>
-              <Select
-                value={category}
-                onValueChange={setCategory}
-                disabled={isTransferTx}
-              >
-                <SelectTrigger className={triggerClass}>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent
-                  position="popper"
-                  side="bottom"
-                  align="start"
-                  className={`${contentClass} max-h-60 overflow-y-auto`}
-                >
-                  {DEFAULT_CATEGORIES.map((c) => (
-                    <SelectItem className={itemClass} key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label className="text-sm" htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                className="bg-white text-black border border-gray-300"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                disabled={isTransferTx}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label className="text-sm" htmlFor="notes">Notes (optional)</Label>
-            <Input
-              id="notes"
-              className="bg-white text-black border border-gray-300"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              disabled={isTransferTx}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label className="text-sm" htmlFor="receipt">Receipt (optional)</Label>
-            <Input
-              id="receipt"
-              type="file"
-              accept="image/*,application/pdf"
-              onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-            />
-            {transaction?.receiptUrl && (
-              <a
-                className="text-xs text-blue-600 underline"
-                href={
-                  /^https?:\/\//i.test(transaction.receiptUrl)
-                    ? transaction.receiptUrl
-                    : `${API_BASE || ""}${transaction.receiptUrl}`
-                }
-                target="_blank"
-                rel="noreferrer"
-              >
-                View current receipt
-              </a>
-            )}
-          </div>
+          {transaction?.receiptUrl && (
+            <a
+              className="text-xs text-blue-600 underline"
+              href={
+                /^https?:\/\//i.test(transaction.receiptUrl)
+                  ? transaction.receiptUrl
+                  : `${base}${transaction.receiptUrl}`
+              }
+              target="_blank"
+              rel="noreferrer"
+            >
+              View current receipt
+            </a>
+          )}
 
           {error && (
             <p className="text-sm text-red-600 border border-red-200 bg-red-50 rounded-md p-2">
@@ -334,7 +181,7 @@ export default function UpdateTransactionModal({
           )}
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter>
           <Button variant="outline" disabled={submitting} onClick={onClose}>
             Cancel
           </Button>
