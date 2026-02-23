@@ -168,7 +168,7 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
               <SelectTrigger className="bg-white text-black border border-gray-300">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent className="z-[100] bg-white text-black border border-gray-300" position="popper" side="top" sideOffset={4}>
+              <SelectContent className="z-[100] bg-white text-black border border-gray-300" position="popper">
                 {ACCOUNT_TYPES.map((t) => (
                   <SelectItem key={t} value={t} className="text-black data-[highlighted]:bg-gray-100 data-[highlighted]:text-black">
                     {t.replace("_", " ").toUpperCase()}
