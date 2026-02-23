@@ -8,14 +8,19 @@
  * On success, redirect to dashboard
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { login as apiLogin } from "@/lib/auth";
 import { useSession } from "@/providers/SessionProvider";
 
 export default function LoginPage() {
     const router = useRouter();
-    const { refresh } = useSession();
+    const { user, loading, refresh } = useSession();
+
+    // If already logged in (session loaded in background), go to dashboard
+    useEffect(() => {
+        if (!loading && user) router.replace("/dashboard");
+    }, [loading, user, router]);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
