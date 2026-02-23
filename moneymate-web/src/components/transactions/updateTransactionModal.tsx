@@ -157,21 +157,119 @@ export default function UpdateTransactionModal({
         )}
 
         <div className="grid gap-4 py-2">
-          <Input value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <div className="grid gap-2">
+            <Label htmlFor="edit-account">Account</Label>
+            <Select value={accountId} onValueChange={setAccountId} disabled={isTransferTx}>
+              <SelectTrigger id="edit-account" className="bg-white text-black border border-gray-300">
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent className="bg-white text-black border border-gray-300 z-[100]">
+                {accounts.filter((a) => !a.archived).map((acc) => (
+                  <SelectItem key={acc._id} value={acc._id} className="text-black data-[highlighted]:bg-gray-100">
+                    {acc.name} ({acc.currency})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-type">Type</Label>
+              <Select value={type} onValueChange={(v) => setType(v as "income" | "expense")} disabled={isTransferTx}>
+                <SelectTrigger id="edit-type" className="bg-white text-black border border-gray-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-black border border-gray-300 z-[100]">
+                  <SelectItem value="expense" className="text-black data-[highlighted]:bg-gray-100">Expense</SelectItem>
+                  <SelectItem value="income" className="text-black data-[highlighted]:bg-gray-100">Income</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-amount">Amount</Label>
+              <Input
+                id="edit-amount"
+                type="number"
+                min={0}
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="bg-white text-black border border-gray-300"
+                disabled={isTransferTx}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="edit-category">Category</Label>
+            <Select value={category} onValueChange={setCategory} disabled={isTransferTx}>
+              <SelectTrigger id="edit-category" className="bg-white text-black border border-gray-300">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent className="bg-white text-black border border-gray-300 z-[100] max-h-60 overflow-y-auto">
+                {DEFAULT_CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c} className="text-black data-[highlighted]:bg-gray-100">
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="edit-date">Date</Label>
+            <Input
+              id="edit-date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="bg-white text-black border border-gray-300"
+              disabled={isTransferTx}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="edit-notes">Notes (optional)</Label>
+            <Input
+              id="edit-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g. merchant name"
+              className="bg-white text-black border border-gray-300"
+              disabled={isTransferTx}
+            />
+          </div>
 
           {transaction?.receiptUrl && (
-            <a
-              className="text-xs text-blue-600 underline"
-              href={
-                /^https?:\/\//i.test(transaction.receiptUrl)
-                  ? transaction.receiptUrl
-                  : `${base}${transaction.receiptUrl}`
-              }
-              target="_blank"
-              rel="noreferrer"
-            >
-              View current receipt
-            </a>
+            <div className="grid gap-1">
+              <Label>Receipt</Label>
+              <a
+                className="text-sm text-blue-600 underline"
+                href={
+                  /^https?:\/\//i.test(transaction.receiptUrl)
+                    ? transaction.receiptUrl
+                    : `${base}${transaction.receiptUrl}`
+                }
+                target="_blank"
+                rel="noreferrer"
+              >
+                View current receipt
+              </a>
+            </div>
+          )}
+
+          {!isTransferTx && (
+            <div className="grid gap-2">
+              <Label htmlFor="edit-receipt">Replace receipt (optional)</Label>
+              <Input
+                id="edit-receipt"
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                className="bg-white text-black border border-gray-300"
+              />
+            </div>
           )}
 
           {error && (
