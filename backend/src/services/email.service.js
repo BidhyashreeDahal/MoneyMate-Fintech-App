@@ -74,18 +74,26 @@ export async function sendPasswordResetEmail({ to, resetUrl }) {
     host: (process.env.SMTP_HOST || "").trim(),
     port,
     secure,
-    requireTLS: !secure && port === 587, // Gmail 587 uses STARTTLS
+    requireTLS: !secure && port === 587,
     auth: { user, pass },
   });
 
-  console.log("[password-reset] Sending via SMTP to:", to);
-  await transporter.sendMail({
-    from: from || user,
-    to,
-    subject,
-    text,
-    html,
-  });
-  console.log("[password-reset] SMTP send OK");
+  console.log("[password-reset] Sending via SMTP to:", to, "host:", process.env.SMTP_HOST, "port:", port);
+  try {
+    await transporter.sendMail({
+      from: from || user,
+      to,
+      subject,
+      text,
+      html,
+    });
+    console.log("[password-reset] SMTP send OK");
+  } catch (smtpErr) {
+    const msg = smtpErr?.message || String(smtpErr);
+    const code = smtpErr?.code || smtpErr?.responseCode;
+    const response = smtpErr?.response;
+    console.error("[password-reset] SMTP error:", msg, "code:", code, "response:", response);
+    throw new Error(`SMTP failed: ${msg}${code ? ` (${code})` : ""}`);
+  }
 }
 

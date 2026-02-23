@@ -186,7 +186,9 @@ export const forgotPassword = async (req, res) => {
     try {
       await sendPasswordResetEmail({ to: user.email, resetUrl });
     } catch (err) {
-      console.error("[password-reset] email send failed:", err);
+      console.error("[password-reset] email send failed:", err?.message || err);
+      if (err?.response) console.error("[password-reset] SMTP response:", err.response);
+      if (err?.code) console.error("[password-reset] Error code:", err.code);
       // Still return ok response (avoid user enumeration), but logs will show the cause.
     }
     return okResponse();
