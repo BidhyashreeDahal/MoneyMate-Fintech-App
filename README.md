@@ -7,9 +7,8 @@
   ### *Personal finance, simplified.*
 
   [![Live Demo](https://img.shields.io/badge/Live_Demo-10b981?style=for-the-badge&logo=vercel&logoColor=white)](https://money-mate-fintech-app.vercel.app/)
-  [![License](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge)](./LICENSE)
 
-  **[View Live App](https://money-mate-fintech-app.vercel.app/)** · [Report Bug](https://github.com/BidhyashreeDahal/MoneyMate-Fintech-App/issues) · [Request Feature](https://github.com/BidhyashreeDahal/MoneyMate-Fintech-App/issues)
+  **[View Live App](https://money-mate-fintech-app.vercel.app/)**
 
 </div>
 
@@ -40,6 +39,31 @@
   <img src="https://img.shields.io/badge/Tailwind_CSS-38bdf8?style=flat-square&logo=tailwindcss" alt="Tailwind" />
   <img src="https://img.shields.io/badge/Recharts-ff6384?style=flat-square" alt="Recharts" />
 </p>
+
+| Category | Technologies |
+|----------|--------------|
+| **Frontend** | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS, Recharts, Radix UI (Dialog, Select), Lucide icons |
+| **Backend** | Node.js, Express 5, Mongoose |
+| **Database** | MongoDB (Atlas) |
+| **Auth** | JWT, HttpOnly cookies, bcryptjs, cookie-parser, express-rate-limit |
+| **Validation** | Zod (backend + shared schemas) |
+| **AI** | Google Gemini, Groq (Llama), OpenAI — with fallback chain for monthly reports |
+| **OCR** | Tesseract.js for receipt text extraction |
+| **Email** | Nodemailer (SMTP), Resend (optional) — for password reset |
+| **Storage** | Cloudinary (receipt images), Multer (upload handling) |
+| **Deployment** | Vercel (frontend), Render (backend), MongoDB Atlas |
+| **Dev / QA** | Vitest, Supertest, ESLint, Nodemon |
+
+---
+
+## What I built
+
+- **Full-stack app** — 28 REST endpoints across 8 API modules, 6 main app screens, 5 Mongoose models
+- **Secure auth** — JWT in HttpOnly cookies, rate limiting (auth + API), production CORS and `trust proxy`
+- **Resilient AI** — Multi-provider fallback (Gemini → Groq → OpenAI) for monthly financial reports
+- **Receipt flow** — OCR (Tesseract) + AI parsing, optional Cloudinary upload, 43 transaction categories
+- **Financial logic** — MongoDB aggregation pipelines for insights, budgets with date ranges and alerts
+- **Production-ready** — Env-based config, health checks, centralized error handling, CI (GitHub Actions)
 
 ---
 
@@ -154,4 +178,4 @@ Production cookie and CORS settings are documented in the backend (secure cookie
 
 ## License
 
-MIT © [MoneyMate](https://github.com/BidhyashreeDahal/MoneyMate-Fintech-App)
+Proprietary. © 2025 MoneyMate. All rights reserved. This project is not open source.
