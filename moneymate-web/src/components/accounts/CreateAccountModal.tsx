@@ -152,7 +152,7 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
         <div className="grid gap-4 py-2">
           {/* Account Name */}
           <div className="grid gap-2">
-            <Label htmlFor="name">Account name</Label>
+            <Label htmlFor="name" className="text-black">Account name</Label>
             <Input
               id="name"
               placeholder="Chequing Main"
@@ -163,14 +163,14 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
 
           {/* Type */}
           <div className="grid gap-2">
-            <Label>Type</Label>
+            <Label className="text-black">Type</Label>
             <Select value={type} onValueChange={(v) => setType(v as any)}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white text-black border border-gray-300">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[100] bg-white text-black border border-gray-300" position="popper" side="top" sideOffset={4}>
                 {ACCOUNT_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>
+                  <SelectItem key={t} value={t} className="text-black data-[highlighted]:bg-gray-100 data-[highlighted]:text-black">
                     {t.replace("_", " ").toUpperCase()}
                   </SelectItem>
                 ))}
@@ -181,7 +181,7 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
           {/* Currency + Balance */}
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="currency">Currency</Label>
+              <Label htmlFor="currency" className="text-black">Currency</Label>
               <Input
                 id="currency"
                 value={currency}
@@ -191,7 +191,7 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="balance">Initial balance</Label>
+              <Label htmlFor="balance" className="text-black">Initial balance</Label>
               <Input
                 id="balance"
                 type="number"
@@ -209,7 +209,7 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
           {/* Goal Amount + Color */}
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="goalAmount">Goal amount (optional)</Label>
+              <Label htmlFor="goalAmount" className="text-black">Goal amount (optional)</Label>
               <Input
                 id="goalAmount"
                 type="number"
@@ -222,7 +222,7 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="color">Color</Label>
+              <Label htmlFor="color" className="text-black">Color</Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="color"
@@ -245,7 +245,7 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
 
           {/* Icon Selection */}
           <div className="grid gap-2">
-            <Label>Icon (optional)</Label>
+            <Label className="text-black">Icon (optional)</Label>
             <div className="grid grid-cols-5 gap-2">
               {Object.entries(iconMap).map(([iconName, IconComponent]) => {
                 const Icon = IconComponent as React.ComponentType<{ className?: string }>;
