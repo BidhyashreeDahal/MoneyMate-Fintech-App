@@ -9,17 +9,21 @@ import Account from "../models/Account.js";
 export const createAccount = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { name, type, currency, goalAmount, color, icon } = req.body;
+    const { name, type, currency, balance, goalAmount, color, icon } = req.body;
 
     if (!name) {
       return res.status(400).json({ message: "Account name is required." });
     }
+
+    const initialBalance = Number(balance);
+    const safeBalance = Number.isFinite(initialBalance) && initialBalance >= 0 ? initialBalance : 0;
 
     const newAccount = await Account.create({
       userId,
       name,
       type,
       currency,
+      balance: safeBalance,
       goalAmount,
       color,
       icon,
@@ -66,6 +70,7 @@ export const updateAccount = async (req, res) => {
       "name",
       "type",
       "currency",
+      "balance",
       "goalAmount",
       "color",
       "icon",
@@ -75,6 +80,10 @@ export const updateAccount = async (req, res) => {
     allowedUpdates.forEach((key) => {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     });
+    if (updates.balance !== undefined) {
+      const b = Number(updates.balance);
+      updates.balance = Number.isFinite(b) && b >= 0 ? b : 0;
+    }
 
     const account = await Account.findOne({ _id: accountId, userId });
     if (!account) {
