@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createBudget } from "@/lib/budgets";
+import { TRANSACTION_CATEGORIES } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -88,19 +89,21 @@ export default function CreateBudgetModal({
           onSubmit={handleSubmit}
           className="space-y-5"
         >
-          {/* Category */}
+          {/* Category — must match transaction categories exactly for spending to count */}
           <div className="space-y-2">
             <label className="text-sm font-medium">
               Category
             </label>
-            <input
+            <select
               value={category}
-              onChange={(e) =>
-                setCategory(e.target.value)
-              }
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              placeholder="Groceries"
-            />
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
+            >
+              <option value="">Select category</option>
+              {TRANSACTION_CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
 
           {/* Limit */}

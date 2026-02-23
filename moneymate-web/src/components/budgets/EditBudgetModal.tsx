@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {updateBudget, type Budget,} from "@/lib/budgets";
+import { updateBudget, type Budget } from "@/lib/budgets";
+import { TRANSACTION_CATEGORIES } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 
 type Props = {budget: Budget;onClose: () => void;onUpdated: () => void;
@@ -76,20 +77,23 @@ export default function EditBudgetModal({
           onSubmit={handleSubmit}
           className="space-y-5"
         >
-          {/* Category */}
+          {/* Category — must match transaction categories exactly for spending to count */}
           <div className="space-y-2">
             <label className="text-sm font-medium">
               Category
             </label>
-            <input
+            <select
               value={category}
-              onChange={(e) =>
-                setCategory(
-                  e.target.value
-                )
-              }
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-            />
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
+            >
+              {category && !TRANSACTION_CATEGORIES.includes(category as (typeof TRANSACTION_CATEGORIES)[number]) && (
+                <option value={category}>{category} (pick same as transactions)</option>
+              )}
+              {TRANSACTION_CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
 
           {/* Limit */}

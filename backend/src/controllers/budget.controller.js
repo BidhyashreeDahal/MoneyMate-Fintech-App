@@ -76,6 +76,12 @@ export const getBudgets = async (req, res) => {
     const results = [];
 
     for (const budget of budgets) {
+      // Use start-of-day and end-of-day so transactions on boundary dates are included
+      const startOfPeriod = new Date(budget.startDate);
+      startOfPeriod.setUTCHours(0, 0, 0, 0);
+      const endOfPeriod = new Date(budget.endDate);
+      endOfPeriod.setUTCHours(23, 59, 59, 999);
+
       const spending = await Transaction.aggregate([
         {
           $match: {
@@ -84,8 +90,8 @@ export const getBudgets = async (req, res) => {
             category: budget.category,
             archived: false,
             date: {
-              $gte: budget.startDate,
-              $lte: budget.endDate,
+              $gte: startOfPeriod,
+              $lte: endOfPeriod,
             },
           },
         },
