@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createTransaction } from "@/lib/transactions";
 import { listAccounts, type Account } from "@/lib/accounts";
 import { parseReceiptAI } from "@/lib/receipts";
+import { TRANSACTION_CATEGORIES } from "@/lib/categories";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -42,51 +43,6 @@ type Props = {
 
 const TX_TYPES = ["expense", "income"] as const;
 
-const DEFAULT_CATEGORIES = [
-   "Groceries",
-        "Food & Drinks",
-        "Coffee & Snacks",
-        "Shopping",
-        "Personal Care",
-        "Health",
-        "Pharmacy",
-        "Rent",
-        "Mortgage",
-        "Home Maintenance",
-        "Utilities",
-        "Internet",
-        "Phone Bill",
-        "Fuel",
-        "Public Transit",
-        "Taxi / Ride-sharing",
-        "Parking",
-        "Vehicle Maintenance",
-        "Movies",
-        "Music",
-        "Games",
-        "Activities",
-        "Nightlife",
-        "Subscriptions",
-        "Bank Fees",
-        "Investments",
-        "Insurance",
-        "Loans",
-        "Tax Payments",
-        "Flights",
-        "Hotels",
-        "Travel Food",
-        "Transportation",
-        "Vacation Activities",
-        "Salary",
-        "Bonus",
-        "Refund",
-        "Investment Income",
-        "Gift Income",
-        "Other Income",
-        "Transfer In",
-        "Transfer Out",
-] as const;
-
 function toISODateInputValue(d: Date) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -108,7 +64,7 @@ export default function CreateTransactionModal({ open, onClose, onCreated }: Pro
   const [accountId, setAccountId] = useState("");
   const [type, setType] = useState<(typeof TX_TYPES)[number]>("expense");
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<string>(DEFAULT_CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(TRANSACTION_CATEGORIES[0]);
   const [date, setDate] = useState(toISODateInputValue(new Date()));
   const [notes, setDescription] = useState("");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -140,7 +96,7 @@ export default function CreateTransactionModal({ open, onClose, onCreated }: Pro
   function resetForm() {
     setType("expense");
     setAmount("");
-    setCategory(DEFAULT_CATEGORIES[0]);
+    setCategory(TRANSACTION_CATEGORIES[0]);
     setDate(toISODateInputValue(new Date()));
     setDescription("");
     setReceiptFile(null);
@@ -303,7 +259,7 @@ export default function CreateTransactionModal({ open, onClose, onCreated }: Pro
                   align="start"
                   className={`${contentClass} max-h-60 overflow-y-auto`}
                 >
-                  {DEFAULT_CATEGORIES.map((c) => (
+                  {TRANSACTION_CATEGORIES.map((c) => (
                     <SelectItem className={itemClass} key={c} value={c}>
                       {c}
                     </SelectItem>

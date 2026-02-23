@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { updateTransaction, uploadReceipt, type Transaction } from "@/lib/transactions";
 import { type Account } from "@/lib/accounts";
+import { TRANSACTION_CATEGORIES } from "@/lib/categories";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,17 +34,6 @@ type Props = {
 
 const TX_TYPES = ["expense", "income"] as const;
 
-const DEFAULT_CATEGORIES = [
-  "Groceries","Food & Drinks","Coffee & Snacks","Shopping","Personal Care",
-  "Health","Pharmacy","Rent","Mortgage","Home Maintenance","Utilities",
-  "Internet","Phone Bill","Fuel","Public Transit","Taxi / Ride-sharing",
-  "Parking","Vehicle Maintenance","Movies","Music","Games","Activities",
-  "Nightlife","Subscriptions","Bank Fees","Investments","Insurance","Loans",
-  "Tax Payments","Flights","Hotels","Travel Food","Transportation",
-  "Vacation Activities","Salary","Bonus","Refund","Investment Income",
-  "Gift Income","Other Income","Transfer In","Transfer Out",
-] as const;
-
 function toISODateInputValue(d: Date) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -67,7 +57,7 @@ export default function UpdateTransactionModal({
   const [accountId, setAccountId] = useState("");
   const [type, setType] = useState<(typeof TX_TYPES)[number]>("expense");
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<string>(DEFAULT_CATEGORIES[0]);
+  const [category, setCategory] = useState<string>(TRANSACTION_CATEGORIES[0]);
   const [date, setDate] = useState(toISODateInputValue(new Date()));
   const [notes, setNotes] = useState("");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -91,7 +81,7 @@ export default function UpdateTransactionModal({
     setAccountId(transaction.accountId);
     setType(transaction.type === "income" ? "income" : "expense");
     setAmount(String(transaction.amount ?? ""));
-    setCategory(transaction.category || DEFAULT_CATEGORIES[0]);
+    setCategory(transaction.category || TRANSACTION_CATEGORIES[0]);
     setDate(toISODateInputValue(new Date(transaction.date)));
     setNotes(transaction.notes || "");
     setReceiptFile(null);
@@ -208,7 +198,7 @@ export default function UpdateTransactionModal({
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent className="bg-white text-black border border-gray-300 z-[100] max-h-60 overflow-y-auto">
-                {DEFAULT_CATEGORIES.map((c) => (
+                {TRANSACTION_CATEGORIES.map((c) => (
                   <SelectItem key={c} value={c} className="text-black data-[highlighted]:bg-gray-100">
                     {c}
                   </SelectItem>
