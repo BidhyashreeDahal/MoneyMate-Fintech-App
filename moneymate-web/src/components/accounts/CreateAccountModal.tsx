@@ -141,7 +141,7 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
                 }
             }}
     >
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create account</DialogTitle>
           <DialogDescription>
@@ -195,12 +195,14 @@ export default function CreateAccountModal({ open, onClose, onCreated }: Props) 
               <Input
                 id="balance"
                 type="number"
+                inputMode="decimal"
                 value={balance}
-                onChange={(e) => setBalance(e.target.value)} // keep raw string
+                onChange={(e) => setBalance(e.target.value)}
                 min={0}
                 step="0.01"
+                placeholder="0"
+                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
-
             </div>
           </div>
 
