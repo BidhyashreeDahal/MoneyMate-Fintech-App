@@ -14,8 +14,10 @@ import { notFound, errorHandler } from "./middlewares/error.middleware.js";
 import helmet from "helmet";
 import cors from "cors";
 import { apiLimiter } from "./middlewares/rateLimit.middleware.js";
+import { logPasswordResetEmailStatus } from "./services/email.service.js";
 
 dotenv.config();
+logPasswordResetEmailStatus();
 
 const app = express();
 

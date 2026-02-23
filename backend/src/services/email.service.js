@@ -15,6 +15,19 @@ function hasSmtpConfig() {
   );
 }
 
+/** Call at startup to log whether password reset emails will be sent. */
+export function logPasswordResetEmailStatus() {
+  if (hasResendConfig()) {
+    console.log("[password-reset] Configured: Resend");
+  } else if (hasSmtpConfig()) {
+    console.log("[password-reset] Configured: SMTP");
+  } else {
+    console.warn(
+      "[password-reset] NOT CONFIGURED. Set RESEND_API_KEY+RESEND_FROM or SMTP_* so forgot-password emails are sent."
+    );
+  }
+}
+
 export async function sendPasswordResetEmail({ to, resetUrl }) {
   const subject = "MoneyMate password reset";
   const text = `Reset your password using this link:\n\n${resetUrl}\n\nIf you did not request this, you can ignore this email.`;
@@ -39,34 +52,40 @@ export async function sendPasswordResetEmail({ to, resetUrl }) {
     return;
   }
 
-  // Safe dev fallback: if SMTP isn't configured, log the link.
+  // No provider configured: throw so logs show the cause; reset link is still logged for dev.
   if (!hasSmtpConfig()) {
     console.log(
-      "[password-reset] Email provider not configured (set RESEND_API_KEY+RESEND_FROM or SMTP_*). Reset URL:",
+      "[password-reset] Email provider not configured. Reset URL (for dev only):",
       resetUrl
     );
-    return;
+    throw new Error(
+      "Password reset email not configured. Set RESEND_API_KEY+RESEND_FROM or SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM on the server."
+    );
   }
 
-  const port = Number(process.env.SMTP_PORT);
-  const secure = port === 465; // common convention
+  const port = Number(process.env.SMTP_PORT) || 587;
+  const secure = port === 465;
+  // Strip surrounding quotes (e.g. from Render env "MoneyMate <x@gmail.com>")
+  const from = String(process.env.SMTP_FROM || "").replace(/^["']|["']$/g, "").trim();
+  const user = String(process.env.SMTP_USER || "").trim();
+  const pass = String(process.env.SMTP_PASS || "").trim();
 
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+    host: (process.env.SMTP_HOST || "").trim(),
     port,
     secure,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
+    requireTLS: !secure && port === 587, // Gmail 587 uses STARTTLS
+    auth: { user, pass },
   });
 
+  console.log("[password-reset] Sending via SMTP to:", to);
   await transporter.sendMail({
-    from: process.env.SMTP_FROM,
+    from: from || user,
     to,
     subject,
     text,
     html,
   });
+  console.log("[password-reset] SMTP send OK");
 }
 
