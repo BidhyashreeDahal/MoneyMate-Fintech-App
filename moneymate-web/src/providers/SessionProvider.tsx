@@ -30,11 +30,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   async function refresh() {
+    const timeoutMs = 15_000; // 15s max wait so we never hang on "Redirecting..."
+    const timeoutPromise = new Promise<null>((_, reject) =>
+      setTimeout(() => reject(new Error("Session check timeout")), timeoutMs)
+    );
     try {
-      const me = await getMe();
+      const me = await Promise.race([getMe(), timeoutPromise]);
       setUser(me);
     } catch {
-      // If /me fails, user is not logged in (cookie missing/expired)
+      // If /me fails or times out, user is not logged in (cookie missing/expired or backend unreachable)
       setUser(null);
     } finally {
       setLoading(false);
