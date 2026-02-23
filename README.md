@@ -1,269 +1,157 @@
-## MoneyMate
+<div align="center">
 
-**Full‑Stack Personal Finance Platform**
-<p align="center"> <a href="https://money-mate-fintech-app.vercel.app/"> <img src="https://img.shields.io/badge/Live-Demo-111827?style=for-the-badge&logo=vercel&logoColor=white" /> </a> <img src="https://img.shields.io/badge/Next.js-App_Router-black?style=for-the-badge&logo=nextdotjs" /> <img src="https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white" /> <img src="https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb&logoColor=white" /> <img src="https://img.shields.io/badge/Auth-JWT_HttpOnly_Cookies-0ea5e9?style=for-the-badge" /> <img src="https://img.shields.io/badge/AI-Gemini%20%7C%20Groq%20%7C%20OpenAI-7c3aed?style=for-the-badge" /> <img src="https://img.shields.io/badge/OCR-Tesseract.js-f59e0b?style=for-the-badge" /> <img src="https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge" /> </p>
+  <img src="moneymate-web/public/moneymate-logo.png" alt="MoneyMate" width="120" height="120" />
 
-### Live application
+  # **MoneyMate**
 
-- Web: https://money-mate-fintech-app.vercel.app/
+  ### *Personal finance, simplified.*
 
-### Overview
+  [![Live Demo](https://img.shields.io/badge/Live_Demo-10b981?style=for-the-badge&logo=vercel&logoColor=white)](https://money-mate-fintech-app.vercel.app/)
+  [![License](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge)](./LICENSE)
 
-MoneyMate is a full-stack personal finance platform designed to help users manage accounts, track transactions, control budgets, and generate intelligent financial insights.
+  **[View Live App](https://money-mate-fintech-app.vercel.app/)** · [Report Bug](https://github.com/BidhyashreeDahal/MoneyMate-Fintech-App/issues) · [Request Feature](https://github.com/BidhyashreeDahal/MoneyMate-Fintech-App/issues)
 
-The system includes:
+</div>
 
-- A secure **Express + MongoDB** API with cookie-based authentication
-- A modern **Next.js (App Router)** frontend built with React and TypeScript
-- AI-powered monthly financial summaries
-- OCR-based receipt parsing
-- Email-based password recovery workflows
+---
 
-The application emphasizes secure authentication, structured financial data modeling, and production-ready deployment practices.
+## Overview
 
-### Screenshots (optional)
+**MoneyMate** is a full-stack personal finance platform that helps users manage accounts, track transactions, control budgets, and gain intelligent financial insights. Built with production-ready authentication, multi-provider AI, and modern tooling.
 
-Add these files to `docs/images/` and update the links below:
+| | |
+|:---|:---|
+| **Frontend** | Next.js 16 (App Router), React, TypeScript, Tailwind CSS |
+| **Backend** | Node.js, Express, MongoDB (Mongoose) |
+| **Auth** | JWT in HttpOnly cookies, secure CORS, password reset via email |
+| **AI** | Monthly reports (Gemini / Groq / OpenAI fallback), OCR receipt parsing |
 
-- Sign in: `docs/images/signin.png`
-- Sign up: `docs/images/signup.png`
-- Dashboard: `docs/images/dashboard.png`
+---
 
-## Architecture
+## Tech Stack
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Express-5-000000?style=flat-square&logo=express" alt="Express" />
+  <img src="https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/JWT-HttpOnly-000000?style=flat-square" alt="JWT" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38bdf8?style=flat-square&logo=tailwindcss" alt="Tailwind" />
+  <img src="https://img.shields.io/badge/Recharts-ff6384?style=flat-square" alt="Recharts" />
+</p>
+
+---
+
+## Features
+
+- **Accounts** — Create and manage accounts with real-time balance tracking
+- **Transactions** — Income, expense, and transfer tracking with 43+ categories
+- **Budgets** — Category budgets with alerts and progress tracking
+- **Insights** — Cashflow trends, category breakdowns, and KPI dashboard
+- **AI report** — Monthly financial summary (Gemini / Groq / OpenAI)
+- **Receipts** — OCR parsing (Tesseract.js) and optional Cloudinary storage
+- **Password reset** — Email-based reset (SMTP / Resend)
+
+---
+
+## Project structure
 
 ```
-MoneyMate
-├── backend/         → Express API (Node.js, MongoDB, JWT auth)
-└── moneymate-web/   → Next.js frontend (React, TypeScript, Tailwind)
+MoneyMate-Fintech-App/
+├── backend/           # Express API (auth, accounts, transactions, budgets, insights, receipts)
+└── moneymate-web/     # Next.js frontend (App Router, TypeScript, Tailwind)
 ```
 
-## Authentication model
+---
 
-- JWT tokens stored in **HttpOnly** cookies
-- CORS configured with **credential support**
-- Secure cookie settings for production environments
-
-## Core features
-
-### Authentication & security
-
-- Email/password authentication
-- JWT stored in HttpOnly cookies
-- Secure password reset flow via email
-- Production-safe CORS and cookie configuration
-
-### Account management
-
-- Create, update, and archive financial accounts
-- Track balances and optional financial goals
-- Real-time balance updates
-
-### Transactions
-
-- Income and expense tracking
-- Category assignment
-- Statement-style transaction view
-- Archive support
-
-### Transfers
-
-- Move funds between accounts
-- Status tracking
-
-### Budgets
-
-- Category-based budgeting
-- Threshold alerts
-- Visual progress tracking
-
-### Insights & analytics
-
-- Cashflow trend visualization
-- Category breakdown charts
-- KPI summary cards
-- Net position calculation
-
-### AI financial report
-
-- Monthly AI-generated financial summary
-- Provider fallback support:
-  - Gemini
-  - Groq (OpenAI-compatible)
-  - OpenAI
-
-### Receipt processing
-
-- OCR extraction via `tesseract.js`
-- Receipt parsing workflow
-- Optional receipt attachment to transactions (storage provider configurable)
-
-## Technology stack
-
-### Frontend
-
-- Next.js (App Router)
-- React
-- TypeScript
-- Tailwind CSS
-- Recharts
-
-### Backend
-
-- Node.js
-- Express
-- MongoDB (Mongoose)
-- JWT authentication
-- Zod validation
-
-### AI & OCR
-
-- Gemini / Groq / OpenAI (configurable)
-- `tesseract.js`
-
-### Email
-
-- SMTP (Nodemailer)
-- Resend (optional)
-
-## Local development
+## Getting started
 
 ### Prerequisites
 
-- Node.js 18+
-- npm
-- MongoDB (local or Atlas)
+- **Node.js** 18+
+- **MongoDB** (local or [Atlas](https://www.mongodb.com/cloud/atlas))
+- **npm**
 
-### Backend setup
+### Backend
 
 ```bash
 cd backend
 cp .env.example .env
+# Edit .env with MONGO_URI, JWT_SECRET, FRONTEND_URL, etc.
 npm install
 npm run dev
 ```
 
-Default backend URL: `http://localhost:5000`
+Runs at `http://localhost:5000`.
 
-### Frontend setup
+### Frontend
 
 ```bash
 cd moneymate-web
 cp .env.example .env.local
 ```
 
-Set `NEXT_PUBLIC_API_URL` in `moneymate-web/.env.local`:
+In `.env.local` set:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-Then run:
+Then:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Frontend runs on: `http://localhost:3000`
+Runs at `http://localhost:3000`.
+
+---
 
 ## Environment variables
 
-### Backend (`backend/.env`)
+| Variable | Where | Purpose |
+|----------|--------|---------|
+| `MONGO_URI` | Backend | MongoDB connection string |
+| `JWT_SECRET` | Backend | Signing key for JWT |
+| `FRONTEND_URL` | Backend | Allowed CORS origin (e.g. Vercel URL) |
+| `PASSWORD_RESET_URL_BASE` | Backend | Frontend reset-password page URL |
+| `SMTP_*` or `RESEND_*` | Backend | Forgot-password email delivery |
+| `NEXT_PUBLIC_API_URL` | Frontend | Backend API base URL (e.g. Render URL) |
 
-Required:
+See `backend/.env.example` and `moneymate-web/.env.example` for full lists.
 
-- `MONGO_URI`
-- `JWT_SECRET`
-- `NODE_ENV`
-- `PORT`
-- `FRONTEND_URL`
+---
 
-Password reset:
+## Deployment
 
-- `PASSWORD_RESET_URL_BASE`
+- **Frontend:** [Vercel](https://vercel.com) — connect repo, set `NEXT_PUBLIC_API_URL` to backend URL, deploy.
+- **Backend:** [Render](https://render.com) — Web Service, root directory `backend`, set env vars, deploy.
+- **Database:** [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) — allow `0.0.0.0/0` for Render.
 
-Email (choose one):
+Production cookie and CORS settings are documented in the backend (secure cookies, `trust proxy`, `sameSite: "none"`).
 
-- SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
-- Resend (optional): `RESEND_API_KEY`, `RESEND_FROM`
-
-AI providers (optional):
-
-- `GEMINI_API_KEY`
-- `GROQ_API_KEY`
-- `OPENAI_API_KEY`
-
-Upload control:
-
-- `ENABLE_UPLOADS=true`
-- `DISABLE_UPLOADS=true`
-
-### Frontend (`moneymate-web/.env.local`)
-
-- `NEXT_PUBLIC_API_URL`
-
-## Deployment considerations
-
-### Cookie configuration (production)
-
-Ensure:
-
-- `secure: true`
-- `sameSite: "none"`
-- `httpOnly: true`
-- `app.set("trust proxy", 1)`
-
-CORS must allow credentials.
-
-### Serverless upload limitation
-
-Local disk storage does not persist in serverless environments.
-
-Receipt uploads are typically:
-
-- Disabled by default in production, or
-- Stored using object storage (Cloudinary / S3 / R2)
+---
 
 ## Scripts
 
-### Backend
+| Command | Location | Description |
+|--------|----------|-------------|
+| `npm run dev` | backend / moneymate-web | Start dev server |
+| `npm start` | backend / moneymate-web | Start production server |
+| `npm test` | backend / moneymate-web | Run tests |
 
-```bash
-cd backend
-npm run dev
-npm start
-npm test
-```
+---
 
-### Frontend
+## Security
 
-```bash
-cd moneymate-web
-npm run dev
-npm run build
-npm start
-npm test
-```
+- Secrets in environment variables; `.env` not committed
+- JWT in HttpOnly cookies; production-safe CORS and cookie options
+- Input validation with Zod; rate limiting on auth routes
 
-## CI/CD
-
-- Frontend: automatic deployment via Vercel
-- Backend: designed for GitHub Actions CI integration
-- Supports automated testing pipelines
-
-## Security practices
-
-- Secrets stored in environment variables
-- `.env` files excluded from version control
-- Cookie-based authentication
-- Input validation via Zod
+---
 
 ## License
 
-MIT License
-##Images
-
-![alt text](moneymate-web/public/sigin/Signin/signup.png)
-![alt text](image.png)
-
-
+MIT © [MoneyMate](https://github.com/BidhyashreeDahal/MoneyMate-Fintech-App)
