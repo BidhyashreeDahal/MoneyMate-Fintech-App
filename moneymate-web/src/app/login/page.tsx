@@ -32,8 +32,9 @@ export default function LoginPage() {
         setError(null);
         setSubmitting(true);
         try {
-            await apiLogin(email, password);
-            await refresh();
+            const data = await apiLogin(email, password);
+            // Use login response so we don't wait for a second request (getMe)
+            await refresh(data.user);
             router.push("/dashboard");
         } catch (err: any) {
             setError(err.message || "Login failed");

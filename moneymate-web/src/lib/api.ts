@@ -90,33 +90,50 @@ export async function parseApiError(res: Response, fallbackMessage: string) {
   });
 }
 
+const DEFAULT_TIMEOUT_MS = 60_000; // 60s so cold starts usually complete; users don't see timeout errors
+
 /**
  * Typed fetch helper.
  * Automatically supports:
  * - Local backend via NEXT_PUBLIC_API_URL
  * - Production via Vercel rewrite proxy (/api)
+ * - Request timeout to avoid indefinite hang (e.g. backend cold start).
  */
 export async function apiFetch<T>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit & { timeoutMs?: number } = {}
 ): Promise<T> {
-  // If env exists (local), use it.
-  // If not (production), use relative path.
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, ...fetchOptions } = options;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   const base =
     process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "";
 
-  const res = await fetch(`${base}${path}`, {
-    ...options,
-    credentials: "include", // required for cookie auth
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  });
+  try {
+    const res = await fetch(`${base}${path}`, {
+      ...fetchOptions,
+      signal: controller.signal,
+      credentials: "include", // required for cookie auth
+      headers: {
+        "Content-Type": "application/json",
+        ...(fetchOptions.headers || {}),
+      },
+    });
 
-  if (!res.ok) {
-    throw await parseApiError(res, "Request failed");
+    if (!res.ok) {
+      throw await parseApiError(res, "Request failed");
+    }
+
+    return res.json() as Promise<T>;
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      const e = new Error("Something's taking a bit longer. Please try again.") as Error & { isTimeout?: boolean };
+      e.isTimeout = true;
+      throw e;
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return res.json() as Promise<T>;
 }

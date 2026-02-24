@@ -19,13 +19,25 @@ export async function getMe(): Promise<SessionUser> {
 }
 /**
  * Post /api/auth/login
- * logs in a user with email and password. 
+ * Logs in with email and password. Retries once on timeout (e.g. backend cold start)
+ * so users usually just see "Signing in..." and succeed without seeing an error.
  */
-export async function login(email:string, password:string){
-    return apiFetch<{message: string; user: SessionUser}>("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({email, password}),
+export async function login(email: string, password: string) {
+  const attempt = () =>
+    apiFetch<{ message: string; user: SessionUser }>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+      timeoutMs: 60_000,
     });
+  try {
+    return await attempt();
+  } catch (err) {
+    const isTimeout = err && typeof err === "object" && "isTimeout" in err && (err as { isTimeout?: boolean }).isTimeout;
+    if (isTimeout) {
+      return await attempt();
+    }
+    throw err;
+  }
 }
 
 /**

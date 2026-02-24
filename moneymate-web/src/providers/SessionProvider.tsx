@@ -19,7 +19,7 @@ import { getMe, logout as apiLogout, SessionUser } from "@/lib/auth";
 type SessionContextValue = {
   user: SessionUser | null;
   loading: boolean;
-  refresh: () => Promise<void>;
+  refresh: (userFromLogin?: SessionUser | null) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -29,7 +29,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function refresh() {
+  async function refresh(userFromLogin?: SessionUser | null) {
+    if (userFromLogin !== undefined) {
+      setUser(userFromLogin);
+      setLoading(false);
+      return;
+    }
     const timeoutMs = 15_000; // 15s max wait so we never hang on "Redirecting..."
     const timeoutPromise = new Promise<null>((_, reject) =>
       setTimeout(() => reject(new Error("Session check timeout")), timeoutMs)
@@ -38,7 +43,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       const me = await Promise.race([getMe(), timeoutPromise]);
       setUser(me);
     } catch {
-      // If /me fails or times out, user is not logged in (cookie missing/expired or backend unreachable)
       setUser(null);
     } finally {
       setLoading(false);
