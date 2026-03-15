@@ -132,7 +132,6 @@ npm run dev
 Runs at `http://localhost:3000`.
 
 ---
-
 ## Environment variables
 
 | Variable | Where | Purpose |
