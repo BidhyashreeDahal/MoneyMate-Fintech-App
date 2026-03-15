@@ -44,6 +44,7 @@ app.use("/api", apiLimiter);
  * - Safe for credentials
  */
 
+
 const allowedOrigins = (
   process.env.FRONTEND_URL || process.env.CLIENT_ORIGIN || ""
 )
