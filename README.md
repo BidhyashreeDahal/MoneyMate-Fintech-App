@@ -13,7 +13,12 @@
 </div>
 
 ---
+## Demo Login
+To explore the app without creating an account:
+Email: demo@moneymate.app
+Password: DemoPass123!
 
+-----
 ## Overview
 
 **MoneyMate** is a full-stack personal finance platform that helps users manage accounts, track transactions, control budgets, and gain intelligent financial insights. Built with production-ready authentication, multi-provider AI, and modern tooling.
