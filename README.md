@@ -15,7 +15,9 @@
 ---
 ## Demo Login
 To explore the app without creating an account:
+
 Email: demo@moneymate.app
+
 Password: DemoPass123!
 
 -----
